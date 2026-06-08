@@ -126,6 +126,7 @@ export type Database = {
           is_current: boolean;
           grade: string | null;
           document_url: string | null;
+          credential_url: string | null;
           created_at: string;
         };
         Insert: {
@@ -140,6 +141,7 @@ export type Database = {
           is_current?: boolean;
           grade?: string | null;
           document_url?: string | null;
+          credential_url?: string | null;
           created_at?: string;
         };
         Update: {
@@ -154,6 +156,7 @@ export type Database = {
           is_current?: boolean;
           grade?: string | null;
           document_url?: string | null;
+          credential_url?: string | null;
           created_at?: string;
         };
       };

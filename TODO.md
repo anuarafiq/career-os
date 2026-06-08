@@ -36,9 +36,11 @@
 - [ ] **Saved jobs / bookmarks** - let candidates bookmark jobs to revisit.
 - [ ] **Employer pipeline analytics** - conversion funnel across stages, time-in-stage. Trading-terminal aesthetic fits the brand.
 - [ ] **File upload for qualifications** - `document_url` column exists but no upload flow (Supabase Storage).
+- [ ] **Run migration 004** - `supabase/migrations/004_credential_url.sql` adds `credential_url` to `qualifications`. Must be applied to Supabase before Certificates page works.
 
 ## Polish + completeness
 
+- [x] **Certificates page** - `/certificates` self-service UI: paste Coursera URL → auto-extract details → save → AI skill suggestions → career path tie-in. Portfolio splits Education and Certificates sections with Coursera badge and Recent indicator.
 - [ ] **Profile editing** - post-onboarding edit flows for bio, links, skills, qualifications, work experience. Currently read-only after onboarding. [Portfolio page displays profile data but no edit UI]
 - [ ] **Portfolio item CRUD** - add/edit/delete `portfolio_items`. Page renders them but nothing populates them. [Portfolio items seeded in demo but no create/edit UI]
 - [ ] **Coach session persistence** - read/write `coach_sessions` so conversations survive reloads. Table exists, route never touches it. [Coach component stores messages in-memory only, no DB persistence]

@@ -143,6 +143,16 @@ async function seedCandidate(admin: any, userId: string) {
       title: "Meta Front-End Developer Certificate",
       start_date: "2024-01-01",
       end_date: "2024-03-01",
+      credential_url: "https://www.coursera.org/account/accomplishments/verify/META2024DEMO",
+    },
+    {
+      candidate_id: candidateId,
+      type: "certificate",
+      institution: "DeepLearning.AI",
+      title: "Machine Learning Specialization",
+      start_date: "2024-06-01",
+      end_date: "2024-09-01",
+      credential_url: "https://www.coursera.org/account/accomplishments/verify/DL2024DEMO",
     },
   ]);
 

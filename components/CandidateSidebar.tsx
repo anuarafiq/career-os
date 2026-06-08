@@ -11,8 +11,9 @@ const navItems = [
   { href: "/explore",   label: "Explore Paths", icon: "◈" },
   { href: "/coach",     label: "AI Coach", icon: "◉" },
   { href: "/pay",       label: "Fair Pay", icon: "◐" },
-  { href: "/portfolio", label: "Portfolio", icon: "◑" },
-  { href: "/jobs",      label: "Jobs", icon: "◒" },
+  { href: "/portfolio",     label: "Portfolio",    icon: "◑" },
+  { href: "/certificates", label: "Certificates", icon: "◎" },
+  { href: "/jobs",          label: "Jobs",         icon: "◒" },
 ];
 
 export function CandidateSidebar({

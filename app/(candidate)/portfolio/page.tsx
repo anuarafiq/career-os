@@ -62,14 +62,14 @@ export default async function PortfolioPage() {
         <p className="text-foreground leading-relaxed mb-8 max-w-prose">{candidate.bio}</p>
       )}
 
-      {/* Qualifications */}
-      {(quals ?? []).length > 0 && (
+      {/* Education */}
+      {(quals ?? []).filter((q) => q.type === "education").length > 0 && (
         <section className="mb-8">
           <h2 className="font-heading font-semibold text-sm uppercase tracking-wider text-muted-foreground mb-4">
-            Education & Qualifications
+            Education
           </h2>
           <div className="flex flex-col gap-3">
-            {quals!.map((q) => (
+            {quals!.filter((q) => q.type === "education").map((q) => (
               <div key={q.id} className="flex items-start justify-between py-3 border-b border-border">
                 <div>
                   <p className="font-medium text-sm text-foreground">{q.title}</p>
@@ -87,6 +87,57 @@ export default async function PortfolioPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </section>
+      )}
+
+      {/* Certificates */}
+      {(quals ?? []).filter((q) => q.type === "certificate").length > 0 && (
+        <section className="mb-8">
+          <h2 className="font-heading font-semibold text-sm uppercase tracking-wider text-muted-foreground mb-4">
+            Certificates
+          </h2>
+          <div className="flex flex-col gap-3">
+            {quals!.filter((q) => q.type === "certificate").map((q) => {
+              const isRecent =
+                q.end_date &&
+                Date.now() - new Date(q.end_date).getTime() < 90 * 24 * 60 * 60 * 1000;
+              return (
+                <div key={q.id} className="flex items-start justify-between py-3 border-b border-border">
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-medium text-sm text-foreground">{q.title}</p>
+                      {isRecent && (
+                        <span className="text-xs bg-brand-subtle text-brand px-1.5 py-0.5 rounded">Recent</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      <p className="text-xs text-muted-foreground">{q.institution}</p>
+                      {q.credential_url && (
+                        <>
+                          <span className="text-xs bg-brand-subtle text-brand px-2 py-0.5 rounded-md">Coursera</span>
+                          <a
+                            href={q.credential_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-brand hover:opacity-80"
+                          >
+                            Verify ↗
+                          </a>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0 ml-4">
+                    {q.end_date && (
+                      <p className="text-xs text-muted-foreground tabular">
+                        {new Date(q.end_date).getFullYear()}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </section>
       )}
