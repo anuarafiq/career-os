@@ -52,3 +52,4 @@ Line heights: tight 1.2 (headings), body 1.6 (dark bg add 0.05), ui 1.4.
 - AI provider switched from Anthropic to Groq (`@ai-sdk/groq`). Client in `lib/claude/client.ts` exports `groq` + `MODEL`. Both AI routes use Vercel AI SDK `streamText`/`generateText`. Requires `GROQ_API_KEY` in env.
 - Coach route (`app/api/ai/coach/route.ts`) caps `maxOutputTokens` at 512 and applies a 10-message sliding window (`messages.slice(-10)`) to bound input token cost per request.
 - `react-markdown` added to `CoachChat.tsx` for rendering structured coach responses (bullets, bold, code). User messages render as plain text.
+- Employer setup page at `app/(employer)/employer/setup/page.tsx` — single-step form, inserts into `employer_profiles`. Handles Postgres `23505` unique violation by redirecting to dashboard (profile already exists case).
