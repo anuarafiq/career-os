@@ -113,6 +113,20 @@
   /* Tabular numerals everywhere for data */
   .tabular { font-variant-numeric: tabular-nums; }
 
+  /* Calendar picker icon — invert so it's visible on dark bg, tint to accent on hover */
+  input[type="month"]::-webkit-calendar-picker-indicator,
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) opacity(0.45);
+    cursor: pointer;
+    border-radius: 3px;
+    padding: 2px;
+    transition: filter 0.15s ease;
+  }
+  input[type="month"]::-webkit-calendar-picker-indicator:hover,
+  input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    filter: invert(1) opacity(1) sepia(1) saturate(3) hue-rotate(5deg);
+  }
+
   /* Scrollbar styling */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
