@@ -12,57 +12,76 @@ const DEMO_EMPLOYER = {
 };
 
 export async function POST(req: Request) {
-  const { role } = (await req.json()) as { role: "candidate" | "employer" };
-  if (role !== "candidate" && role !== "employer") {
-    return NextResponse.json({ error: "Invalid role" }, { status: 400 });
-  }
-
-  const admin = createAdminClient();
-  const creds = role === "candidate" ? DEMO_CANDIDATE : DEMO_EMPLOYER;
-
-  // Create auth user if not exists
-  const { data: listData } = await admin.auth.admin.listUsers();
-  let userId = listData?.users.find((u) => u.email === creds.email)?.id;
-
-  if (!userId) {
-    const { data: created, error } = await admin.auth.admin.createUser({
-      email: creds.email,
-      password: creds.password,
-      email_confirm: true,
-    });
-    if (error || !created.user) {
-      return NextResponse.json({ error: error?.message ?? "Failed to create demo user" }, { status: 500 });
+  try {
+    const { role } = (await req.json()) as { role: "candidate" | "employer" };
+    if (role !== "candidate" && role !== "employer") {
+      return NextResponse.json({ error: "Invalid role" }, { status: 400 });
     }
-    userId = created.user.id;
-  }
 
-  // Check if profile already seeded
-  const { data: existingProfile } = await admin
-    .from("profiles")
-    .select("id")
-    .eq("user_id", userId)
-    .single();
+    const admin = createAdminClient();
+    const creds = role === "candidate" ? DEMO_CANDIDATE : DEMO_EMPLOYER;
 
-  if (!existingProfile) {
-    if (role === "candidate") {
-      await seedCandidate(admin, userId);
-    } else {
-      await seedEmployer(admin, userId);
+    // Find or create auth user
+    const { data: listData } = await admin.auth.admin.listUsers();
+    let userId = listData?.users.find((u) => u.email === creds.email)?.id;
+
+    if (!userId) {
+      const { data: created, error } = await admin.auth.admin.createUser({
+        email: creds.email,
+        password: creds.password,
+        email_confirm: true,
+      });
+      if (error || !created.user) {
+        return NextResponse.json(
+          { error: error?.message ?? "Failed to create demo user" },
+          { status: 500 }
+        );
+      }
+      userId = created.user.id;
     }
-  }
 
-  return NextResponse.json({ email: creds.email, password: creds.password });
+    // Seed data if profile doesn't exist yet
+    const { data: existingProfile } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("user_id", userId)
+      .single();
+
+    if (!existingProfile) {
+      if (role === "candidate") {
+        await seedCandidate(admin, userId);
+      } else {
+        await seedEmployer(admin, userId);
+      }
+    }
+
+    return NextResponse.json({ email: creds.email, password: creds.password });
+  } catch (e) {
+    console.error("[demo] unexpected error:", e);
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "Unexpected error" },
+      { status: 500 }
+    );
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function assertData<T>(data: T | null, error: unknown, label: string): T {
+  if (error) throw new Error(`[demo] ${label}: ${JSON.stringify(error)}`);
+  if (!data) throw new Error(`[demo] ${label}: returned null`);
+  return data;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function seedCandidate(admin: any, userId: string) {
-  const { data: profile } = await admin
+  const { data: profile, error: profileErr } = await admin
     .from("profiles")
     .insert({ user_id: userId, role: "candidate" })
     .select("id")
     .single();
+  assertData(profile, profileErr, "insert profiles");
 
-  const { data: candidate } = await admin
+  const { data: candidate, error: candidateErr } = await admin
     .from("candidate_profiles")
     .insert({
       profile_id: profile.id,
@@ -77,10 +96,10 @@ async function seedCandidate(admin: any, userId: string) {
     })
     .select("id")
     .single();
+  assertData(candidate, candidateErr, "insert candidate_profiles");
 
   const candidateId = candidate.id;
 
-  // Ensure skills exist and link them
   const skillsToAdd = [
     { name: "Python", category: "Backend", level: "mid" },
     { name: "JavaScript", category: "Frontend", level: "mid" },
@@ -90,19 +109,21 @@ async function seedCandidate(admin: any, userId: string) {
   ];
 
   for (const s of skillsToAdd) {
-    // Upsert skill
-    const { data: skill } = await admin
+    const { data: skill, error: skillErr } = await admin
       .from("skills")
       .upsert({ name: s.name, category: s.category }, { onConflict: "name" })
       .select("id")
       .single();
+    assertData(skill, skillErr, `upsert skill ${s.name}`);
 
     await admin
       .from("candidate_skills")
-      .upsert({ candidate_id: candidateId, skill_id: skill.id, level: s.level }, { onConflict: "candidate_id,skill_id" });
+      .upsert(
+        { candidate_id: candidateId, skill_id: skill.id, level: s.level },
+        { onConflict: "candidate_id,skill_id" }
+      );
   }
 
-  // Qualifications
   await admin.from("qualifications").insert([
     {
       candidate_id: candidateId,
@@ -125,7 +146,6 @@ async function seedCandidate(admin: any, userId: string) {
     },
   ]);
 
-  // Work experience
   await admin.from("work_experiences").insert([
     {
       candidate_id: candidateId,
@@ -141,7 +161,6 @@ async function seedCandidate(admin: any, userId: string) {
     },
   ]);
 
-  // Portfolio items
   await admin.from("portfolio_items").insert([
     {
       candidate_id: candidateId,
@@ -166,13 +185,14 @@ async function seedCandidate(admin: any, userId: string) {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function seedEmployer(admin: any, userId: string) {
-  const { data: profile } = await admin
+  const { data: profile, error: profileErr } = await admin
     .from("profiles")
     .insert({ user_id: userId, role: "employer" })
     .select("id")
     .single();
+  assertData(profile, profileErr, "insert profiles");
 
-  const { data: employer } = await admin
+  const { data: employer, error: employerErr } = await admin
     .from("employer_profiles")
     .insert({
       profile_id: profile.id,
@@ -183,6 +203,7 @@ async function seedEmployer(admin: any, userId: string) {
     })
     .select("id")
     .single();
+  assertData(employer, employerErr, "insert employer_profiles");
 
   const employerId = employer.id;
 

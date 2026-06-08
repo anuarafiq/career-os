@@ -81,10 +81,13 @@ Line heights: tight 1.2 (headings), body 1.6 (dark bg add 0.05), ui 1.4.
 - Employer side: Smart Talent Matching (Claude ranks candidates vs JD), Pipeline kanban, Re-Engagement shell
 - DB schema: full Postgres + RLS in `supabase/migrations/001_initial_schema.sql`
 - Seed data: 29 career nodes, ~25 career edges, 27 salary benchmarks in `supabase/migrations/002_seed_data.sql`
+- Demo login: one-click candidate/employer demo on landing page (`components/DemoLogin.tsx`), seeded via `POST /api/demo`; demo candidate is "Aishah Rahman" (UTM CS student, Grab intern, 5 skills, 2 portfolio projects); demo employer is "TechCorp Malaysia" (3 open jobs)
 
 ### Infrastructure
 - Supabase project live — `.env.local` populated with URL + anon key + service role key
-- Anthropic API key slot exists in `.env.local` but is set to placeholder (`your_anthropic_api_key`) — AI features (coach, talent match) won't work until a real key is added
+- Anthropic API key configured in `.env.local` — AI coach and talent match are live
+- `supabase/migrations/003_service_role_grants.sql` — grants SELECT/INSERT/UPDATE/DELETE on all public tables to `service_role`; must be run in Supabase SQL editor when setting up a new project (Supabase does not grant service_role table access by default when RLS is enabled)
+- Admin Supabase client at `lib/supabase/admin.ts` — uses service role key, bypasses RLS, for server-only use
 
 ### What's NOT done yet
 - Employer onboarding (`/employer/setup`) not built — employer dashboard redirects there but the route doesn't exist
@@ -94,9 +97,8 @@ Line heights: tight 1.2 (headings), body 1.6 (dark bg add 0.05), ui 1.4.
 - No job posting UI for employers
 
 ### Next priorities (for Intent Form by 15 June)
-1. Add real Anthropic API key to `.env.local` — AI coach and talent match are broken without it
-2. Employer onboarding — build `/employer/setup` route (company name form → `employer_profiles` insert); employer dashboard already redirects there
-3. Demo flow walkthrough — verify end-to-end: signup → onboarding → dashboard → explore/coach/pay
+1. Employer onboarding — build `/employer/setup` route (company name form → `employer_profiles` insert); employer dashboard already redirects there
+2. Demo flow walkthrough — verify end-to-end for both demo accounts: candidate (dashboard → explore → coach → pay) and employer (dashboard → search → pipeline)
 
 ### Stage 2 backlog (by 26 July)
 - Re-engagement API route — replace stub with real logic (surface past applicants matching new JDs)
@@ -112,3 +114,4 @@ Line heights: tight 1.2 (headings), body 1.6 (dark bg add 0.05), ui 1.4.
 - Route groups: `(candidate)` routes are `/dashboard`, `/explore`, `/coach`, `/pay`, `/portfolio`, `/jobs`, `/onboarding`; employer routes are `/employer/dashboard`, `/employer/search`, `/employer/pipeline`, `/employer/re-engage`
 - `input[type="month"]` calendar picker icon styled via `::-webkit-calendar-picker-indicator` in `globals.css` — inverted + amber tint on hover to match dark theme
 - Post-signup redirect to onboarding was broken — root cause was RLS policies on the `profiles` table blocking reads after auth; fixed via Supabase dashboard. If this recurs, check that the `profiles` table has a SELECT policy allowing `auth.uid() = id`
+- Supabase service_role does not automatically get table-level grants when RLS is enabled — must explicitly `GRANT ... TO service_role` (see migration 003)
