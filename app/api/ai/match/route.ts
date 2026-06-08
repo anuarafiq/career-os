@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import { anthropic, MODEL } from "@/lib/claude/client";
+import { groq, MODEL } from "@/lib/claude/client";
+import { generateText } from "ai";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -54,13 +55,11 @@ Return ONLY a JSON array (no markdown, no explanation) in this exact format:
 
 Score from 0-100. Only include candidates with score >= 40. Sort by score descending. Return max 5.`;
 
-  const response = await anthropic.messages.create({
-    model: MODEL,
-    max_tokens: 1024,
-    messages: [{ role: "user", content: prompt }],
+  const { text } = await generateText({
+    model: groq(MODEL),
+    prompt,
+    maxOutputTokens: 1024,
   });
-
-  const text = response.content[0].type === "text" ? response.content[0].text : "";
 
   let results = [];
   try {

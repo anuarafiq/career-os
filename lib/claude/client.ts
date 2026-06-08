@@ -1,7 +1,7 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { createGroq } from "@ai-sdk/groq";
 
-export const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY!,
+export const groq = createGroq({
+  apiKey: process.env.GROQ_API_KEY!,
 });
 
-export const MODEL = "claude-sonnet-4-6";
+export const MODEL = "llama-3.3-70b-versatile";

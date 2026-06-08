@@ -5,7 +5,7 @@
 ## Blockers (nothing renders without these)
 
 - [ ] **Supabase project** - create project, run both migrations, add `.env.local` (URL + anon key). App pages can't render until this exists.
-- [ ] **Anthropic API key** - add to env so coach / match / re-engage routes work.
+- [x] **Groq API key** - switched from Anthropic to Groq (`llama-3.3-70b-versatile`). Add `GROQ_API_KEY` to env.
 - [ ] **Demo / mock data mode** - seed a candidate + employer + jobs + applications so the full flow is demoable, ideally with one-click demo login. Needed for Intent Form UI review.
 
 ## Critical (core loop is broken without these)

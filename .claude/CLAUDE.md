@@ -1,7 +1,7 @@
 # Career OS — Project Instructions
 
 ## Stack
-Next.js 16.2.7 (App Router, Turbopack) + Supabase + Claude API (claude-sonnet-4-6) + Tailwind CSS v4 + shadcn/ui + React Flow
+Next.js 16.2.7 (App Router, Turbopack) + Supabase + Groq API (llama-3.3-70b-versatile via @ai-sdk/groq) + Tailwind CSS v4 + shadcn/ui + React Flow
 
 Deadlines: Intent Form **15 June 2026** · Stage 2 build **26 July 2026**
 
@@ -49,3 +49,4 @@ Line heights: tight 1.2 (headings), body 1.6 (dark bg add 0.05), ui 1.4.
 - Supabase service_role does not get table grants automatically when RLS is enabled — must `GRANT ... TO service_role` explicitly (see `supabase/migrations/003_service_role_grants.sql`)
 - Admin client at `lib/supabase/admin.ts` — uses service role key, bypasses RLS, server-only
 - Demo login: `POST /api/demo` seeds a full demo account on first call (idempotent). Landing page has one-click buttons via `components/DemoLogin.tsx`. Demo candidate: "Aishah Rahman" (UTM CS, Grab intern, 5 skills, 2 portfolio projects). Demo employer: "TechCorp Malaysia" (3 open jobs). Requires migration 003 grants to work.
+- AI provider switched from Anthropic to Groq (`@ai-sdk/groq`). Client in `lib/claude/client.ts` exports `groq` + `MODEL`. Both AI routes use Vercel AI SDK `streamText`/`generateText`. Requires `GROQ_API_KEY` in env.

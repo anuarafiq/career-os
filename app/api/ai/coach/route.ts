@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import { anthropic, MODEL } from "@/lib/claude/client";
+import { groq, MODEL } from "@/lib/claude/client";
+import { streamText } from "ai";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -7,12 +8,10 @@ export async function POST(req: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { messages, sessionId } = await req.json() as {
+  const { messages } = await req.json() as {
     messages: { role: "user" | "assistant"; content: string }[];
-    sessionId?: string;
   };
 
-  // Fetch candidate context
   const { data: profile } = await supabase.from("profiles").select("id").eq("user_id", user.id).single();
   const { data: candidate } = await supabase
     .from("candidate_profiles")
@@ -20,15 +19,17 @@ export async function POST(req: Request) {
     .eq("profile_id", profile?.id ?? "")
     .single();
 
+  const candidateId = (await supabase.from("candidate_profiles").select("id").eq("profile_id", profile?.id ?? "").single()).data?.id ?? "";
+
   const { data: skills } = await supabase
     .from("candidate_skills")
     .select("level, skills(name, category)")
-    .eq("candidate_id", (await supabase.from("candidate_profiles").select("id").eq("profile_id", profile?.id ?? "").single()).data?.id ?? "");
+    .eq("candidate_id", candidateId);
 
   const { data: quals } = await supabase
     .from("qualifications")
     .select("type, institution, title, grade")
-    .eq("candidate_id", (await supabase.from("candidate_profiles").select("id").eq("profile_id", profile?.id ?? "").single()).data?.id ?? "");
+    .eq("candidate_id", candidateId);
 
   const skillSummary = skills
     ?.map((s) => {
@@ -64,27 +65,27 @@ Guidelines:
 - You can mention salary ranges in MYR when relevant (e.g., "Senior Software Engineers in KL typically earn RM 9,000–15,000/month")
 - Do not repeat the user's profile back to them unless relevant`;
 
-  const stream = await anthropic.messages.stream({
-    model: MODEL,
-    max_tokens: 1024,
+  const encoder = new TextEncoder();
+
+  const result = streamText({
+    model: groq(MODEL),
     system: systemPrompt,
     messages: messages.map((m) => ({ role: m.role, content: m.content })),
+    maxOutputTokens: 1024,
   });
-
-  const encoder = new TextEncoder();
 
   const readable = new ReadableStream({
     async start(controller) {
-      for await (const event of stream) {
-        if (
-          event.type === "content_block_delta" &&
-          event.delta.type === "text_delta"
-        ) {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: event.delta.text })}\n\n`));
+      try {
+        for await (const text of result.textStream) {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`));
         }
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        controller.close();
+      } catch (err) {
+        console.error("[coach] stream error:", err);
+        controller.error(err);
       }
-      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-      controller.close();
     },
   });
 
