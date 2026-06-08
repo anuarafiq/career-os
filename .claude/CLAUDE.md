@@ -7,7 +7,7 @@ Two-sided marketplace: candidates (interns + job seekers) and employers.
 **Intent Form deadline: 15 June 2026**
 **Stage 2 build deadline: 26 July 2026**
 
-Stack: Next.js 15 (App Router) + Supabase + Claude API (claude-sonnet-4-6) + Tailwind CSS v4 + shadcn/ui + React Flow
+Stack: Next.js 16.2.7 (App Router, Turbopack) + Supabase + Claude API (claude-sonnet-4-6) + Tailwind CSS v4 + shadcn/ui + React Flow
 
 ---
 
@@ -65,3 +65,41 @@ Line heights: tight 1.2 (headings), body 1.6 (dark bg add 0.05), ui 1.4.
 - Onboarding: full-screen stepped layout, one decision per screen
 - Empty states: show what the user gets when filled — no generic "nothing here"
 - No side-stripe card borders, no gradient text (absolute bans)
+
+---
+
+## Current State (as of 8 June 2026)
+
+### What's built and committed
+- Auth: signup (candidate/employer role selector), login, Supabase callback
+- Candidate onboarding: 5-step (basic info → intern/job seeker → qualifications → work experience → skills)
+- Career Path Navigator: React Flow graph, 29 APAC career nodes, salary/transition/skill-gap detail panel
+- AI Career Coach: streaming Claude chat, profile context injected, starter prompts
+- Fair Pay Engine: P25/P50/P75 benchmarks by role/location/experience band
+- Living Portfolio: auto-generated from profile data
+- Jobs board: reads open jobs from DB
+- Employer side: Smart Talent Matching (Claude ranks candidates vs JD), Pipeline kanban, Re-Engagement shell
+- DB schema: full Postgres + RLS in `supabase/migrations/001_initial_schema.sql`
+- Seed data: 29 career nodes, ~25 career edges, 27 salary benchmarks in `supabase/migrations/002_seed_data.sql`
+
+### What's NOT done yet
+- Supabase project not created — no `.env.local` exists, app pages won't render without it
+- No Anthropic API key configured
+- Employer onboarding (company setup) not built
+- Re-engagement API route is a stub (returns empty, UI shell only)
+- No file upload UI for qualification documents (document_url column exists, upload flow not built)
+- No public shareable portfolio URL (route not created)
+- No job posting UI for employers
+
+### Next priorities (for Intent Form by 15 June)
+1. Create Supabase project + run migrations + add `.env.local`
+2. Add mock/demo data option so pages render without real auth (for UI review)
+3. Employer onboarding (company name form → employer_profiles insert)
+4. Polish landing page and demo flow for submission
+
+### Known issues / decisions
+- `middleware.ts` renamed to `proxy.ts` (Next.js 16 breaking change)
+- Supabase Database generics removed from client wrappers (use plain `createBrowserClient()`) due to TS resolution issue with bundler moduleResolution — cast with `as unknown as` where needed
+- `proxy.ts` has early return guard when env vars are missing (so landing page works without Supabase)
+- `useSearchParams()` in signup page wrapped in Suspense boundary (Next.js 16 requirement)
+- Route groups: `(candidate)` routes are `/dashboard`, `/explore`, `/coach`, `/pay`, `/portfolio`, `/jobs`, `/onboarding`; employer routes are `/employer/dashboard`, `/employer/search`, `/employer/pipeline`, `/employer/re-engage`
