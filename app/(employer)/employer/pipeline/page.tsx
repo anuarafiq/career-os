@@ -21,7 +21,7 @@ export default async function PipelinePage() {
 
   const { data: applications } = await supabase
     .from("applications")
-    .select("id, status, job_id, candidate_profiles(name, current_role, location)")
+    .select("id, status, job_id, candidate_profiles(name, job_title, location)")
     .in("job_id", (jobs ?? []).map((j) => j.id));
 
   const byStage = STAGES.reduce<Record<string, typeof applications>>((acc, stage) => {
@@ -50,7 +50,7 @@ export default async function PipelinePage() {
               </div>
               <div className="flex flex-col gap-2">
                 {(byStage[stage] ?? []).map((app) => {
-                  const candidate = (app.candidate_profiles as unknown) as { name: string; current_role: string | null; location: string | null } | null;
+                  const candidate = (app.candidate_profiles as unknown) as { name: string; job_title: string | null; location: string | null } | null;
                   const job = (jobs ?? []).find((j) => j.id === app.job_id);
                   return (
                     <div key={app.id} className="bg-card border border-border rounded-lg p-3">
@@ -60,7 +60,7 @@ export default async function PipelinePage() {
                         </div>
                         <p className="text-sm font-medium text-foreground">{candidate?.name ?? "Unknown"}</p>
                       </div>
-                      <p className="text-xs text-muted-foreground">{candidate?.current_role ?? "—"}</p>
+                      <p className="text-xs text-muted-foreground">{candidate?.job_title ?? "—"}</p>
                       {job && <p className="text-xs text-brand mt-1">{job.title}</p>}
                     </div>
                   );

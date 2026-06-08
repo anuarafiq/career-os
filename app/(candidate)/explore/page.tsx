@@ -12,7 +12,7 @@ export default async function ExplorePage() {
 
   const { data: candidate } = await supabase
     .from("candidate_profiles")
-    .select("id, current_role, seeking")
+    .select("id, job_title, seeking")
     .eq("profile_id", profile.id)
     .single();
 
@@ -27,7 +27,7 @@ export default async function ExplorePage() {
     <CareerPathExplorer
       nodes={nodes ?? []}
       edges={edges ?? []}
-      currentRole={candidate.current_role}
+      currentRole={candidate.job_title}
       seeking={candidate.seeking}
     />
   );

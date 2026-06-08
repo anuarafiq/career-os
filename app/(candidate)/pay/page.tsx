@@ -10,7 +10,7 @@ export default async function PayPage() {
   const { data: profile } = await supabase.from("profiles").select("id").eq("user_id", user.id).single();
   const { data: candidate } = await supabase
     .from("candidate_profiles")
-    .select("current_role, location, years_exp")
+    .select("job_title, location, years_exp")
     .eq("profile_id", profile?.id ?? "")
     .single();
 
@@ -19,7 +19,7 @@ export default async function PayPage() {
   return (
     <FairPayEngine
       salaryData={salaryData ?? []}
-      defaultRole={candidate?.current_role ?? ""}
+      defaultRole={candidate?.job_title ?? ""}
       defaultLocation={candidate?.location ?? "Kuala Lumpur"}
     />
   );

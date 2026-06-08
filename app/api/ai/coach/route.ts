@@ -16,7 +16,7 @@ export async function POST(req: Request) {
   const { data: profile } = await supabase.from("profiles").select("id").eq("user_id", user.id).single();
   const { data: candidate } = await supabase
     .from("candidate_profiles")
-    .select("name, current_role, years_exp, location, seeking, bio")
+    .select("name, job_title, years_exp, location, seeking, bio")
     .eq("profile_id", profile?.id ?? "")
     .single();
 
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
 Your user's profile:
 - Name: ${candidate?.name ?? "Unknown"}
 - Seeking: ${candidate?.seeking === "internship" ? "an internship" : "a full-time role"}
-- Current role: ${candidate?.current_role ?? "Not specified (may be a fresh grad or intern seeker)"}
+- Current role: ${candidate?.job_title ?? "Not specified (may be a fresh grad or intern seeker)"}
 - Years of experience: ${candidate?.years_exp ?? "Not specified"}
 - Location: ${candidate?.location ?? "Not specified"}
 - Bio: ${candidate?.bio ?? "Not provided"}

@@ -8,37 +8,22 @@ export default async function CandidateLayout({
   children: React.ReactNode;
 }) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  // Check if onboarding is complete
   const { data: profile } = await supabase
     .from("profiles")
     .select("id, role")
     .eq("user_id", user.id)
     .single();
 
-  if (!profile) redirect("/login");
-
-  if (profile.role !== "candidate") redirect("/dashboard");
+  if (profile?.role === "employer") redirect("/employer/dashboard");
 
   const { data: candidateProfile } = await supabase
     .from("candidate_profiles")
     .select("id, name")
-    .eq("profile_id", profile.id)
-    .single();
-
-  const isOnboardingRoute =
-    typeof window === "undefined"
-      ? false
-      : window.location.pathname === "/onboarding";
-
-  if (!candidateProfile && !isOnboardingRoute) {
-    redirect("/onboarding");
-  }
+    .eq("profile_id", profile?.id ?? "")
+    .maybeSingle();
 
   return (
     <div className="flex min-h-screen bg-background">

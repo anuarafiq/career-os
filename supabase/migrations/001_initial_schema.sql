@@ -21,7 +21,7 @@ create table candidate_profiles (
   github_url   text,
   linkedin_url text,
   seeking      text not null check (seeking in ('internship', 'full_time')),
-  current_role text,
+  job_title text,
   years_exp    int check (years_exp >= 0),
   created_at   timestamptz default now(),
   updated_at   timestamptz default now()

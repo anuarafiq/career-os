@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   // Fetch candidates with their skills
   const { data: candidates } = await supabase
     .from("candidate_profiles")
-    .select("id, name, current_role, years_exp, location, bio, seeking, candidate_skills(level, skills(name))")
+    .select("id, name, job_title, years_exp, location, bio, seeking, candidate_skills(level, skills(name))")
     .limit(50);
 
   if (!candidates || candidates.length === 0) {
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
       .join(", ");
     return `ID: ${c.id}
 Name: ${c.name}
-Role: ${c.current_role ?? "No current role (intern/fresh grad)"}
+Role: ${c.job_title ?? "No current role (intern/fresh grad)"}
 Experience: ${c.years_exp ?? 0} years
 Location: ${c.location ?? "Not specified"}
 Seeking: ${c.seeking}

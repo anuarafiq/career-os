@@ -9,7 +9,7 @@ export default async function PortfolioPage() {
   const { data: profile } = await supabase.from("profiles").select("id").eq("user_id", user.id).single();
   const { data: candidate } = await supabase
     .from("candidate_profiles")
-    .select("id, name, location, bio, github_url, linkedin_url, seeking, current_role, years_exp")
+    .select("id, name, location, bio, github_url, linkedin_url, seeking, job_title, years_exp")
     .eq("profile_id", profile?.id ?? "")
     .single();
 
@@ -37,7 +37,7 @@ export default async function PortfolioPage() {
         <div>
           <h1 className="font-heading text-3xl font-bold mb-1">{candidate.name}</h1>
           <p className="text-muted-foreground text-sm">
-            {candidate.seeking === "internship" ? "Seeking internship" : candidate.current_role ?? "Open to opportunities"}
+            {candidate.seeking === "internship" ? "Seeking internship" : candidate.job_title ?? "Open to opportunities"}
             {candidate.location ? ` · ${candidate.location}` : ""}
           </p>
           <div className="flex items-center gap-4 mt-2">

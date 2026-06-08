@@ -30,6 +30,7 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${bricolage.variable} dark`}
+      suppressHydrationWarning
     >
       <body className="min-h-screen bg-background text-foreground antialiased">
         {children}

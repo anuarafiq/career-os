@@ -12,7 +12,7 @@ export default async function CoachPage() {
 
   const { data: candidate } = await supabase
     .from("candidate_profiles")
-    .select("id, name, seeking, current_role")
+    .select("id, name, seeking, job_title")
     .eq("profile_id", profile.id)
     .single();
 
@@ -22,7 +22,7 @@ export default async function CoachPage() {
     <CoachChat
       candidateName={candidate.name}
       seeking={candidate.seeking}
-      currentRole={candidate.current_role}
+      currentRole={candidate.job_title}
     />
   );
 }

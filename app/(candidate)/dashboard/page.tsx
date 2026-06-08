@@ -7,17 +7,26 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
+  let { data: profile } = await supabase
     .from("profiles")
     .select("id")
     .eq("user_id", user.id)
     .single();
 
+  if (!profile) {
+    const { data: newProfile } = await supabase
+      .from("profiles")
+      .insert({ user_id: user.id, role: "candidate" })
+      .select("id")
+      .single();
+    profile = newProfile;
+  }
+
   if (!profile) redirect("/login");
 
   const { data: candidate } = await supabase
     .from("candidate_profiles")
-    .select("id, name, seeking, current_role, years_exp, location")
+    .select("id, name, seeking, job_title, years_exp, location")
     .eq("profile_id", profile.id)
     .single();
 
@@ -57,7 +66,7 @@ export default async function DashboardPage() {
         </h1>
         <p className="text-muted-foreground text-sm">
           {candidate.seeking === "internship" ? "Internship seeker" : "Looking for a full-time role"}
-          {candidate.current_role ? ` · ${candidate.current_role}` : ""}
+          {candidate.job_title ? ` · ${candidate.job_title}` : ""}
           {candidate.location ? ` · ${candidate.location}` : ""}
         </p>
       </div>

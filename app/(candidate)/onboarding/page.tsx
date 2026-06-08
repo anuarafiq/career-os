@@ -109,11 +109,20 @@ export default function OnboardingPage() {
     if (!user) return;
 
     // Get or create profile
-    const { data: profile } = await supabase
+    let { data: profile } = await supabase
       .from("profiles")
       .select("id")
       .eq("user_id", user.id)
       .single();
+
+    if (!profile) {
+      const { data: newProfile } = await supabase
+        .from("profiles")
+        .insert({ user_id: user.id, role: "candidate" })
+        .select("id")
+        .single();
+      profile = newProfile;
+    }
 
     if (!profile) {
       setSaving(false);
@@ -131,7 +140,7 @@ export default function OnboardingPage() {
         github_url: githubUrl || null,
         linkedin_url: linkedinUrl || null,
         seeking,
-        current_role: currentRole || null,
+        job_title: currentRole || null,
         years_exp: yearsExp ? parseInt(yearsExp) : null,
       })
       .select("id")
@@ -196,8 +205,7 @@ export default function OnboardingPage() {
       );
     }
 
-    router.push("/dashboard");
-    router.refresh();
+    window.location.href = "/dashboard";
   }
 
   const progress = ((step + 1) / STEPS.length) * 100;
