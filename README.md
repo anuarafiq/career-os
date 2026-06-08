@@ -1,36 +1,147 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Career OS
 
-## Getting Started
+A two-sided career platform that matches candidates to opportunities and helps employers build talent pipelines. Built for the Talentbank Hackathon 2026.
 
-First, run the development server:
+## Features
 
+### Candidate side
+- **Onboarding** - structured intake of education, work history, skills, and portfolio links
+- **Career exploration** - interactive graph of roles and career paths with salary benchmarking
+- **AI coach** - personalized guidance on skill gaps, career transitions, and next steps
+- **Certificates** - auto-parse and store Coursera credentials; skill suggestions tied to career progression
+- **Job discovery** - browse open positions (demo mode includes filtering by salary, location, skills)
+- **Applications** - apply to jobs and track pipeline stage
+
+### Employer side
+- **Setup** - single-step company profile creation
+- **Job posting** - create and manage open positions
+- **Talent search** - scout candidate profiles and save to talent pools
+- **Pipeline** - manage applications through recruiting stages
+- **Re-engagement** - AI-powered suggestions to match open roles against saved talent
+
+### Shared AI features
+- **Job fit scoring** - matches candidate skills to job requirements via LLM
+- **Auto-extraction** - parses CVs and certificates to pre-fill profile data
+- **Personalized recommendations** - suggests career paths and learning roadmaps based on skill gaps
+
+## Stack
+
+- **Frontend:** Next.js 16.2.7 (App Router, Turbopack), React 19, Tailwind CSS v4, shadcn/ui
+- **Backend:** Next.js API routes, Supabase (PostgreSQL + Auth)
+- **AI:** Groq API (`llama-3.3-70b-versatile`) via Vercel AI SDK
+- **Visualization:** React Flow for career graph
+- **Design:** Dark mode, amber/gold accent, trading-terminal aesthetic
+
+## Setup
+
+### Prerequisites
+1. **Supabase project** - create a project at [supabase.com](https://supabase.com)
+2. **Groq API key** - get one at [console.groq.com](https://console.groq.com)
+3. **Node.js 18+** and npm
+
+### Installation
+
+1. Clone and install:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repo>
+cd career-os
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Set up environment variables (`.env.local`):
+```
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+GROQ_API_KEY=your-groq-key
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Run Supabase migrations:
+```bash
+# In Supabase dashboard, run all migrations in supabase/migrations/
+# Or via CLI: supabase db push
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Start the dev server:
+```bash
+npm run dev
+```
 
-## Learn More
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-To learn more about Next.js, take a look at the following resources:
+## Demo Mode
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+One-click demo login buttons on the landing page seed a full demo account:
+- **Candidate:** "Aishah Rahman" (UTM CS, Grab intern, 5 skills, 2 portfolio projects)
+- **Employer:** "TechCorp Malaysia" (3 open jobs, sample applications)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Access via the landing page or direct API call:
+```bash
+curl -X POST http://localhost:3000/api/demo
+```
 
-## Deploy on Vercel
+## Architecture
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+app/
+├── (auth)/              # Signup, login, logout flows
+├── (candidate)/         # Candidate routes
+│   ├── onboarding       # Profile setup wizard
+│   ├── dashboard        # Home page after login
+│   ├── portfolio        # View profile + qualifications
+│   ├── certificates     # Coursera credential mgmt
+│   ├── coach            # AI coaching chat
+│   ├── explore          # Career graph visualization
+│   ├── jobs             # Job board
+│   └── pay              # Salary information
+├── (employer)/          # Employer routes
+│   ├── employer/setup   # Company profile creation
+│   └── pipeline         # Kanban-style application tracking
+└── api/
+    ├── ai/              # AI endpoints (coach, matching, extraction)
+    ├── certificates/    # Coursera parsing + skill suggestions
+    ├── demo             # Demo account seeding
+    └── ...
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Known Issues & Decisions
+
+- **Next.js 16 breaking changes:** `middleware.ts` renamed to `proxy.ts`; Supabase generics removed due to bundler issue
+- **RLS setup:** Supabase service_role requires explicit `GRANT` statements (see `supabase/migrations/003_service_role_grants.sql`)
+- **Auth flow:** Post-signup profile creation should migrate to a DB trigger (currently sync server action)
+- **Coach rate limiting:** No abuse guard; add per-user request cap before production
+
+See [TODO.md](./TODO.md) for the full roadmap and feature blockers.
+
+## Project Status
+
+- **Intent Form deadline:** 15 June 2026
+- **Stage 2 build deadline:** 26 July 2026
+- **Blockers resolved:** Supabase, Groq integration, demo mode
+- **Critical in progress:** Job posting, apply button, candidate application tracking
+
+For detailed feature status, see [TODO.md](./TODO.md).
+
+## Design Standards
+
+All frontend work follows these constraints:
+- Dark mode with amber/gold accent on deep navy-black
+- Typography: Bricolage Grotesque (headings) + Geist Sans (body)
+- No side-stripe card borders, no gradient text
+- OKLCH color space for all custom colors
+- Salary/metric numbers use tabular-nums for terminal aesthetic
+
+See `.impeccable.md` for the full design system.
+
+## Development
+
+```bash
+npm run dev      # Start dev server
+npm run build    # Build for production
+npm run start    # Start production server
+npm run lint     # Run linter
+```
+
+## Contributing
+
+This is a hackathon project with tight deadlines. See [CLAUDE.md](./.claude/CLAUDE.md) for project-specific instructions and [TODO.md](./TODO.md) for the task list.
