@@ -50,3 +50,5 @@ Line heights: tight 1.2 (headings), body 1.6 (dark bg add 0.05), ui 1.4.
 - Admin client at `lib/supabase/admin.ts` — uses service role key, bypasses RLS, server-only
 - Demo login: `POST /api/demo` seeds a full demo account on first call (idempotent). Landing page has one-click buttons via `components/DemoLogin.tsx`. Demo candidate: "Aishah Rahman" (UTM CS, Grab intern, 5 skills, 2 portfolio projects). Demo employer: "TechCorp Malaysia" (3 open jobs). Requires migration 003 grants to work.
 - AI provider switched from Anthropic to Groq (`@ai-sdk/groq`). Client in `lib/claude/client.ts` exports `groq` + `MODEL`. Both AI routes use Vercel AI SDK `streamText`/`generateText`. Requires `GROQ_API_KEY` in env.
+- Coach route (`app/api/ai/coach/route.ts`) caps `maxOutputTokens` at 512 and applies a 10-message sliding window (`messages.slice(-10)`) to bound input token cost per request.
+- `react-markdown` added to `CoachChat.tsx` for rendering structured coach responses (bullets, bold, code). User messages render as plain text.

@@ -42,6 +42,10 @@
 - [ ] **Profile editing** - post-onboarding edit flows for bio, links, skills, qualifications, work experience. Currently read-only after onboarding.
 - [ ] **Portfolio item CRUD** - add/edit/delete `portfolio_items`. Page renders them but nothing populates them.
 - [ ] **Coach session persistence** - read/write `coach_sessions` so conversations survive reloads. Table exists, route never touches it.
+- [ ] **Profile completeness nudge** - if candidate profile is sparse (no skills, no bio), coach should prompt the user to fill their profile instead of giving hollow generic advice.
+- [ ] **Contextual follow-up suggestions** - after each coach response, render 2-3 smart follow-up chips based on the current topic. High demo value.
+- [ ] **Rate limiting on coach endpoint** - no guard against abuse. Each request hits Groq API. Add simple per-user request cap (e.g. 30 messages/hour via Supabase or upstash/ratelimit).
+- [ ] **Conversation export** - let users copy or download the chat as plain text for reference.
 - [ ] **Public portfolio page** - shareable no-auth URL (e.g. `/p/[candidateId]`). Landing copy promises this.
 - [ ] **Auth profile creation fix** - move the post-signup `profiles` insert into a Supabase DB trigger / server action so a dropped connection doesn't strand the user.
 - [ ] **Landing page demo flow** - tighten the path a judge walks through for submission.

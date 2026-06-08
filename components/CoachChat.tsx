@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import ReactMarkdown from "react-markdown";
 
 type Message = {
   role: "user" | "assistant";
@@ -170,7 +171,22 @@ export function CoachChat({
                   : "bg-card border border-border text-foreground rounded-bl-sm"
               )}
             >
-              {msg.content}
+              {msg.role === "user" ? (
+                msg.content
+              ) : (
+                <ReactMarkdown
+                  components={{
+                    p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                    ul: ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-1">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-1">{children}</ol>,
+                    li: ({ children }) => <li>{children}</li>,
+                    strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                    code: ({ children }) => <code className="bg-muted px-1 rounded text-xs font-mono">{children}</code>,
+                  }}
+                >
+                  {msg.content}
+                </ReactMarkdown>
+              )}
               {msg.role === "assistant" && streaming && i === messages.length - 1 && (
                 <span className="inline-block w-1.5 h-3.5 bg-brand ml-0.5 animate-pulse rounded-sm" />
               )}

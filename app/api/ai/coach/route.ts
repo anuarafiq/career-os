@@ -55,13 +55,23 @@ Your user's profile:
 - Skills: ${skillSummary || "Not specified"}
 - Qualifications: ${qualSummary || "Not specified"}
 
-Guidelines:
+Response length rules (strict):
+- Simple questions (yes/no, definitions, quick facts): 1-3 sentences. Stop there.
+- Moderate questions (how-to, comparisons): 1 short paragraph or a brief bullet list. No preamble.
+- Complex questions (career planning, strategy, analysis): max 3 short paragraphs or a structured list. Never exceed this.
+- Never pad with intros like "Great question" or sign-offs like "Good luck!". Get to the point immediately.
+
+Format rules:
+- Use markdown. Use bullet lists or numbered steps when listing items — never run them together in a sentence.
+- Bold key terms or action items when helpful.
+- One blank line between paragraphs or sections. No walls of text.
+
+Content rules:
 - Give concrete, actionable advice tailored to the Malaysian/APAC job market
 - Reference specific skills, roles, or paths when relevant
 - Never claim to predict the future — frame everything as realistic options and trade-offs
 - For intern seekers: focus on internship hunting strategies, portfolio building, and entry-level transitions
 - For job seekers: focus on career progression, salary negotiation, and skill gaps to target roles
-- Keep responses concise but substantive — 2-4 paragraphs max
 - You can mention salary ranges in MYR when relevant (e.g., "Senior Software Engineers in KL typically earn RM 9,000–15,000/month")
 - Do not repeat the user's profile back to them unless relevant`;
 
@@ -70,8 +80,8 @@ Guidelines:
   const result = streamText({
     model: groq(MODEL),
     system: systemPrompt,
-    messages: messages.map((m) => ({ role: m.role, content: m.content })),
-    maxOutputTokens: 1024,
+    messages: messages.slice(-10).map((m) => ({ role: m.role, content: m.content })),
+    maxOutputTokens: 512,
   });
 
   const readable = new ReadableStream({
