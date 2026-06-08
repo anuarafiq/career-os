@@ -1,0 +1,65 @@
+"use client";
+
+import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+
+export default function DemoLogin() {
+  const [loading, setLoading] = useState<"candidate" | "employer" | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleDemo(role: "candidate" | "employer") {
+    setError(null);
+    setLoading(role);
+
+    try {
+      const res = await fetch("/api/demo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Setup failed");
+
+      const supabase = createClient();
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      });
+
+      if (signInError) throw new Error(signInError.message);
+
+      window.location.href = role === "candidate" ? "/dashboard" : "/employer/dashboard";
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Demo login failed");
+      setLoading(null);
+    }
+  }
+
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">
+        Or try a live demo
+      </p>
+      <div className="flex flex-col sm:flex-row items-center gap-3">
+        <button
+          onClick={() => handleDemo("candidate")}
+          disabled={loading !== null}
+          className="w-full sm:w-auto border border-border text-foreground px-6 py-2.5 rounded-md text-sm font-medium hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading === "candidate" ? "Signing in…" : "Demo: Candidate"}
+        </button>
+        <button
+          onClick={() => handleDemo("employer")}
+          disabled={loading !== null}
+          className="w-full sm:w-auto border border-border text-foreground px-6 py-2.5 rounded-md text-sm font-medium hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading === "employer" ? "Signing in…" : "Demo: Employer"}
+        </button>
+      </div>
+      {error && (
+        <p className="text-xs text-destructive">{error}</p>
+      )}
+    </div>
+  );
+}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import DemoLogin from "@/components/DemoLogin";
 
 export default function Home() {
   return (
@@ -41,7 +42,7 @@ export default function Home() {
           your profile — built for talent across Asia.
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-center gap-4 mb-8">
           <Link
             href="/signup?role=candidate"
             className="bg-primary text-primary-foreground px-8 py-3.5 rounded-md text-sm font-semibold hover:opacity-90 transition-opacity"
@@ -55,6 +56,8 @@ export default function Home() {
             I&apos;m hiring
           </Link>
         </div>
+
+        <DemoLogin />
       </section>
 
       {/* Feature grid */}

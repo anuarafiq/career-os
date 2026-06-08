@@ -70,7 +70,7 @@ Line heights: tight 1.2 (headings), body 1.6 (dark bg add 0.05), ui 1.4.
 
 ## Current State (as of 8 June 2026)
 
-### What's built and committed
+### What's built
 - Auth: signup (candidate/employer role selector), login, Supabase callback
 - Candidate onboarding: 5-step (basic info → intern/job seeker → qualifications → work experience → skills)
 - Career Path Navigator: React Flow graph, 29 APAC career nodes, salary/transition/skill-gap detail panel
@@ -82,20 +82,27 @@ Line heights: tight 1.2 (headings), body 1.6 (dark bg add 0.05), ui 1.4.
 - DB schema: full Postgres + RLS in `supabase/migrations/001_initial_schema.sql`
 - Seed data: 29 career nodes, ~25 career edges, 27 salary benchmarks in `supabase/migrations/002_seed_data.sql`
 
+### Infrastructure
+- Supabase project live — `.env.local` populated with URL + anon key + service role key
+- Anthropic API key slot exists in `.env.local` but is set to placeholder (`your_anthropic_api_key`) — AI features (coach, talent match) won't work until a real key is added
+
 ### What's NOT done yet
-- Supabase project not created — no `.env.local` exists, app pages won't render without it
-- No Anthropic API key configured
-- Employer onboarding (company setup) not built
-- Re-engagement API route is a stub (returns empty, UI shell only)
-- No file upload UI for qualification documents (document_url column exists, upload flow not built)
+- Employer onboarding (`/employer/setup`) not built — employer dashboard redirects there but the route doesn't exist
+- Re-engagement API route is a stub (TODO comment, returns empty; UI shell only)
+- No file upload UI for qualification documents (`document_url` column exists, upload flow not built)
 - No public shareable portfolio URL (route not created)
 - No job posting UI for employers
 
 ### Next priorities (for Intent Form by 15 June)
-1. Create Supabase project + run migrations + add `.env.local`
-2. Add mock/demo data option so pages render without real auth (for UI review)
-3. Employer onboarding (company name form → employer_profiles insert)
-4. Polish landing page and demo flow for submission
+1. Add real Anthropic API key to `.env.local` — AI coach and talent match are broken without it
+2. Employer onboarding — build `/employer/setup` route (company name form → `employer_profiles` insert); employer dashboard already redirects there
+3. Demo flow walkthrough — verify end-to-end: signup → onboarding → dashboard → explore/coach/pay
+
+### Stage 2 backlog (by 26 July)
+- Re-engagement API route — replace stub with real logic (surface past applicants matching new JDs)
+- Public shareable portfolio URL — create a `/p/[slug]` or `/portfolio/[id]` public route
+- Job posting UI for employers — form to create/manage open roles
+- Qualification document upload — `document_url` column exists, upload flow not built
 
 ### Known issues / decisions
 - `middleware.ts` renamed to `proxy.ts` (Next.js 16 breaking change)
@@ -103,3 +110,5 @@ Line heights: tight 1.2 (headings), body 1.6 (dark bg add 0.05), ui 1.4.
 - `proxy.ts` has early return guard when env vars are missing (so landing page works without Supabase)
 - `useSearchParams()` in signup page wrapped in Suspense boundary (Next.js 16 requirement)
 - Route groups: `(candidate)` routes are `/dashboard`, `/explore`, `/coach`, `/pay`, `/portfolio`, `/jobs`, `/onboarding`; employer routes are `/employer/dashboard`, `/employer/search`, `/employer/pipeline`, `/employer/re-engage`
+- `input[type="month"]` calendar picker icon styled via `::-webkit-calendar-picker-indicator` in `globals.css` — inverted + amber tint on hover to match dark theme
+- Post-signup redirect to onboarding was broken — root cause was RLS policies on the `profiles` table blocking reads after auth; fixed via Supabase dashboard. If this recurs, check that the `profiles` table has a SELECT policy allowing `auth.uid() = id`
