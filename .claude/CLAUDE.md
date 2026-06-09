@@ -7,6 +7,9 @@ Deadlines: Intent Form **15 June 2026** · Stage 2 build **26 July 2026**
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for feature implementation notes.
 
+## Documentation Rule
+After completing any feature, update `.claude/ARCHITECTURE.md` under the relevant domain section before marking the task done. Add to `CLAUDE.md` only if there is a genuine gotcha - a non-obvious trap, broken convention, or decision that would surprise a fresh instance.
+
 ---
 
 ## Design
