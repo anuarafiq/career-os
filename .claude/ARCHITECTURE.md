@@ -73,6 +73,13 @@ All AI routes use Vercel AI SDK `streamText`/`generateText`. Client: `lib/claude
 ### Profile Edit (`/profile/edit`)
 - Server page fetches `candidate_profiles`, passes to `ProfileEditForm` (client). Does `UPDATE` on `candidate_profiles`.
 
+### Public Portfolio (`/p/[candidateId]`)
+- `app/p/[candidateId]/page.tsx` — public server component, no auth gate. Uses `createAdminClient()` (service role) to bypass RLS. Fetches by `candidate_profiles.id` UUID; calls `notFound()` if missing.
+- Renders: header, bio, Education, Certificates, Work Experience, Skills, Projects (portfolio_items) sections. Standalone layout — no sidebar, no nav rail. Minimal header with "Career OS" wordmark + footer "Powered by Career OS / Build your profile →".
+- `generateMetadata` sets `<title>` to `"${name} — Career OS Portfolio"`.
+- `components/ShareButton.tsx` — client component on the private `/portfolio` page. Copies `/p/{candidateId}` URL to clipboard; shows "Copied!" for 2s.
+- `/p/` is not in `proxy.ts` protectedPaths — no middleware change needed.
+
 ### Coach
 - `react-markdown` in `CoachChat.tsx` for rendering structured responses. User messages render as plain text.
 

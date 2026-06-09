@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import ShareButton from "@/components/ShareButton";
 
 export default async function PortfolioPage() {
   const supabase = await createClient();
@@ -53,8 +54,11 @@ export default async function PortfolioPage() {
             )}
           </div>
         </div>
-        <div className="w-12 h-12 rounded-full bg-brand-subtle flex items-center justify-center text-brand text-xl font-bold font-heading shrink-0">
-          {candidate.name.charAt(0).toUpperCase()}
+        <div className="flex flex-col items-end gap-2 shrink-0 ml-4">
+          <div className="w-12 h-12 rounded-full bg-brand-subtle flex items-center justify-center text-brand text-xl font-bold font-heading">
+            {candidate.name.charAt(0).toUpperCase()}
+          </div>
+          <ShareButton candidateId={candidate.id} />
         </div>
       </div>
 

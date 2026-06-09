@@ -49,6 +49,6 @@
 - [ ] **Contextual follow-up suggestions** - after each coach response, render 2-3 smart follow-up chips based on the current topic. High demo value.
 - [ ] **Rate limiting on coach endpoint** - no guard against abuse. Each request hits Groq API. Add simple per-user request cap (e.g. 30 messages/hour via Supabase or upstash/ratelimit).
 - [ ] **Conversation export** - let users copy or download the chat as plain text for reference.
-- [ ] **Public portfolio page** - shareable no-auth URL (e.g. `/p/[candidateId]`). Landing copy promises this.
+- [x] **Public portfolio page** - shareable no-auth URL (e.g. `/p/[candidateId]`). Landing copy promises this.
 - [ ] **Auth profile creation fix** - move the post-signup `profiles` insert into a Supabase DB trigger / server action so a dropped connection doesn't strand the user.
 - [x] **Landing page demo flow** - tighten the path a judge walks through for submission.
