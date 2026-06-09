@@ -112,7 +112,7 @@ export default function JobsClientView({
             onChange={(e) => setLocation(e.target.value)}
             className="w-36 h-8 text-sm"
           />
-          <Select value={empType} onValueChange={setEmpType}>
+          <Select value={empType} onValueChange={(v) => setEmpType(v ?? "all")}>
             <SelectTrigger className="w-36 h-8 text-sm">
               <SelectValue placeholder="Type" />
             </SelectTrigger>
