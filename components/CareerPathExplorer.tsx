@@ -68,20 +68,28 @@ const nodeTypes: NodeTypes = {
   careerNode: CareerNodeCard,
 };
 
+type RoadmapStep = { skill: string; action: string; resource: string };
+type Roadmap = { summary: string; steps: RoadmapStep[]; estimatedMonths: number };
+
 export function CareerPathExplorer({
   nodes: careerNodes,
   edges: careerEdges,
   currentRole,
   seeking,
+  candidateSkillNames,
 }: {
   nodes: CareerNode[];
   edges: CareerEdge[];
   currentRole: string | null;
   seeking: string;
+  candidateSkillNames: string[];
 }) {
   const [selectedNode, setSelectedNode] = useState<CareerNode | null>(null);
   const [targetNodeId, setTargetNodeId] = useState<string | null>(null);
   const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
+  const [roadmapLoading, setRoadmapLoading] = useState(false);
+  const [roadmapError, setRoadmapError] = useState<string | null>(null);
 
   const categories = useMemo(() => Array.from(new Set(careerNodes.map((n) => n.category))), [careerNodes]);
 
@@ -151,6 +159,45 @@ export function CareerPathExplorer({
       (currentNode && e.from_node_id === currentNode.id && e.to_node_id === selectedNode?.id) ||
       (currentNode && e.to_node_id === currentNode.id && e.from_node_id === selectedNode?.id)
   );
+
+  useEffect(() => {
+    setRoadmap(null);
+    setRoadmapLoading(false);
+    setRoadmapError(null);
+  }, [selectedNode?.id]);
+
+  const skillNamesLower = new Set(candidateSkillNames.map((s) => s.toLowerCase()));
+  const partitionedGaps = selectedEdge?.skill_gaps
+    ? {
+        have: selectedEdge.skill_gaps.filter((g) => skillNamesLower.has(g.toLowerCase())),
+        need: selectedEdge.skill_gaps.filter((g) => !skillNamesLower.has(g.toLowerCase())),
+      }
+    : null;
+
+  async function generateRoadmap() {
+    if (!selectedNode || !partitionedGaps || partitionedGaps.need.length === 0) return;
+    setRoadmapLoading(true);
+    setRoadmapError(null);
+    setRoadmap(null);
+    try {
+      const res = await fetch("/api/ai/skill-gap", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentRole: currentRole ?? "",
+          targetRole: selectedNode.title,
+          missingSkills: partitionedGaps.need,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed to generate roadmap");
+      setRoadmap(data.roadmap);
+    } catch (err) {
+      setRoadmapError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setRoadmapLoading(false);
+    }
+  }
 
   return (
     <div className="flex h-screen">
@@ -268,21 +315,85 @@ export function CareerPathExplorer({
                     </span>
                     <span className="text-xs text-muted-foreground">avg. transition time</span>
                   </div>
-                  {selectedEdge.skill_gaps && selectedEdge.skill_gaps.length > 0 && (
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-2">Skills to develop:</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {selectedEdge.skill_gaps.map((gap) => (
-                          <span
-                            key={gap}
-                            className="text-xs bg-secondary border border-border px-2.5 py-1 rounded-full text-muted-foreground"
-                          >
-                            {gap}
-                          </span>
-                        ))}
-                      </div>
+                  {partitionedGaps && (partitionedGaps.have.length > 0 || partitionedGaps.need.length > 0) && (
+                    <div className="flex flex-col gap-3 mt-1">
+                      {partitionedGaps.have.length > 0 && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1.5">You already have:</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {partitionedGaps.have.map((skill) => (
+                              <span key={skill} className="text-xs bg-success/10 border border-success/20 text-success px-2.5 py-1 rounded-full">
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {partitionedGaps.need.length > 0 && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1.5">You still need:</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {partitionedGaps.need.map((skill) => (
+                              <span key={skill} className="text-xs bg-brand-subtle border border-brand/20 text-brand px-2.5 py-1 rounded-full">
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {partitionedGaps.need.length === 0 && (
+                        <p className="text-xs text-success">You have all the skills for this transition.</p>
+                      )}
                     </div>
                   )}
+                </div>
+              )}
+
+              {partitionedGaps && partitionedGaps.need.length > 0 && !roadmap && (
+                <button
+                  type="button"
+                  onClick={generateRoadmap}
+                  disabled={roadmapLoading}
+                  className="w-full px-4 py-2 bg-brand text-primary-foreground text-xs font-medium rounded-md hover:opacity-90 disabled:opacity-50 transition-opacity flex items-center justify-center gap-2"
+                >
+                  {roadmapLoading ? (
+                    <>
+                      <span className="inline-block w-3 h-3 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                      Generating roadmap...
+                    </>
+                  ) : "Generate Learning Roadmap"}
+                </button>
+              )}
+              {roadmapError && <p className="text-xs text-destructive">{roadmapError}</p>}
+
+              {roadmap && (
+                <div className="flex flex-col gap-3">
+                  <p className="text-xs text-muted-foreground leading-relaxed">{roadmap.summary}</p>
+                  <div className="flex flex-col gap-2">
+                    {roadmap.steps.map((step, i) => (
+                      <div key={step.skill} className="bg-background rounded-md border border-border p-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[10px] font-bold text-brand tabular w-4 text-center">{i + 1}</span>
+                          <span className="text-xs font-semibold text-foreground">{step.skill}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground pl-6 mb-0.5">{step.action}</p>
+                        <p className="text-xs text-brand/70 pl-6">{step.resource}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground tabular">
+                    Estimated:{" "}
+                    <span className="text-foreground font-medium">
+                      ~{roadmap.estimatedMonths} month{roadmap.estimatedMonths !== 1 ? "s" : ""}
+                    </span>
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setRoadmap(null)}
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors text-left"
+                  >
+                    Regenerate ↺
+                  </button>
                 </div>
               )}
 

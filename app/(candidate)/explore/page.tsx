@@ -18,10 +18,20 @@ export default async function ExplorePage() {
 
   if (!candidate) redirect("/onboarding");
 
-  const [{ data: nodes }, { data: edges }] = await Promise.all([
+  const [{ data: nodes }, { data: edges }, { data: skills }] = await Promise.all([
     supabase.from("career_nodes").select("*"),
     supabase.from("career_edges").select("*"),
+    supabase
+      .from("candidate_skills")
+      .select("level, skills(name)")
+      .eq("candidate_id", candidate.id),
   ]);
+
+  const candidateSkillNames: string[] = (
+    (skills ?? []) as unknown as { skills: { name: string } | null }[]
+  )
+    .map((s) => s.skills?.name ?? "")
+    .filter(Boolean);
 
   return (
     <CareerPathExplorer
@@ -29,6 +39,7 @@ export default async function ExplorePage() {
       edges={edges ?? []}
       currentRole={candidate.job_title}
       seeking={candidate.seeking}
+      candidateSkillNames={candidateSkillNames}
     />
   );
 }
