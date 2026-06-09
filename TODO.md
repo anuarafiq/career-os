@@ -19,7 +19,7 @@
 - [x] **Re-engage API route** `/api/ai/re-engage` - AI scans `talent_pools` against open `jobs`, returns fit suggestions + outreach drafts. Replace the `setTimeout` stub in `re-engage/page.tsx`. [Page exists but stub only]
 - [x] **Pipeline stage updates** - make the kanban interactive. Card action updates `application.status` via server action / API route. Supabase realtime optional. [Pipeline page reads-only]
 - [ ] **Talent pool add** - "Save to pool" button on employer search results. Insert into `talent_pools` with `source: 'scouted'`. [Search page exists but no button]
-- [ ] **Candidate application tracking** - candidates have no view of jobs they applied to or what stage they're at. Add a "My applications" view.
+- [x] **Candidate application tracking** - candidates have no view of jobs they applied to or what stage they're at. Add a "My applications" view.
 
 ## AI features (high-impact demo, infra already exists)
 

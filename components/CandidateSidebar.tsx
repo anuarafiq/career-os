@@ -15,6 +15,7 @@ const navItems = [
   { href: "/profile/edit", label: "Profile",      icon: "◓" },
   { href: "/certificates", label: "Certificates", icon: "◎" },
   { href: "/jobs",          label: "Jobs",         icon: "◒" },
+  { href: "/applications",  label: "My Applications", icon: "◫" },
 ];
 
 export function CandidateSidebar({
