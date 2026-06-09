@@ -42,22 +42,76 @@ export default function Home() {
           your profile — built for talent across Asia.
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center gap-4 mb-8">
+        <DemoLogin />
+
+        <p className="text-xs text-muted-foreground mt-5">
+          Building your own profile?{" "}
           <Link
             href="/signup?role=candidate"
-            className="bg-primary text-primary-foreground px-8 py-3.5 rounded-md text-sm font-semibold hover:opacity-90 transition-opacity"
+            className="text-brand hover:text-brand-dim underline-offset-2 hover:underline transition-colors"
           >
-            I&apos;m a candidate
+            Sign up as candidate
           </Link>
+          {" · "}
           <Link
             href="/signup?role=employer"
-            className="border border-border text-foreground px-8 py-3.5 rounded-md text-sm font-semibold hover:bg-secondary transition-colors"
+            className="text-brand hover:text-brand-dim underline-offset-2 hover:underline transition-colors"
           >
-            I&apos;m hiring
+            or as employer
           </Link>
-        </div>
+        </p>
+      </section>
 
-        <DemoLogin />
+      {/* Demo Walkthrough */}
+      <section className="px-8 pb-16">
+        <div className="max-w-5xl mx-auto">
+          <p className="text-xs font-medium text-brand bg-brand-subtle px-3 py-1.5 rounded-full uppercase tracking-wide inline-flex mb-6">
+            2-minute walkthrough
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-card border border-border rounded-lg p-6 flex flex-col gap-5">
+              <div>
+                <p className="text-xs font-medium text-brand uppercase tracking-widest mb-1">Candidate</p>
+                <h3 className="font-heading font-semibold text-foreground text-lg">Aishah Rahman</h3>
+                <p className="text-sm text-muted-foreground mt-1">UTM CS student · Grab intern · 5 skills · Coursera cert</p>
+              </div>
+              <ol className="flex flex-col gap-4">
+                {candidateSteps.map((step, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <span className="shrink-0 w-6 h-6 rounded-full bg-brand-subtle text-brand text-xs font-semibold flex items-center justify-center mt-0.5">
+                      {i + 1}
+                    </span>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{step.label}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{step.desc}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            <div className="bg-card border border-border rounded-lg p-6 flex flex-col gap-5">
+              <div>
+                <p className="text-xs font-medium text-brand uppercase tracking-widest mb-1">Employer</p>
+                <h3 className="font-heading font-semibold text-foreground text-lg">TechCorp Malaysia</h3>
+                <p className="text-sm text-muted-foreground mt-1">3 open roles · 1 candidate in pipeline · talent pool seeded</p>
+              </div>
+              <ol className="flex flex-col gap-4">
+                {employerSteps.map((step, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <span className="shrink-0 w-6 h-6 rounded-full bg-brand-subtle text-brand text-xs font-semibold flex items-center justify-center mt-0.5">
+                      {i + 1}
+                    </span>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{step.label}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{step.desc}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Feature grid */}
@@ -117,5 +171,43 @@ const features = [
     icon: "◓",
     title: "Talent Re-Engagement",
     desc: "Surface past applicants and alumni who are now a strong fit for new open roles.",
+  },
+];
+
+const candidateSteps = [
+  {
+    label: "Explore Paths",
+    desc: "Career Path Navigator — see role transitions from Junior Dev to Senior or PM, with skill gaps and salary deltas.",
+  },
+  {
+    label: "Check Fair Pay",
+    desc: "Fair Pay Engine — view P25/P50/P75 benchmarks for your current role by location and experience band.",
+  },
+  {
+    label: "Chat with your Coach",
+    desc: 'AI Career Coach — ask "What should I learn next?" The coach reads Aishah\'s actual profile, not a template.',
+  },
+  {
+    label: "Browse & Track",
+    desc: "Jobs — browse open roles and apply. My Applications — see the status of an existing application.",
+  },
+];
+
+const employerSteps = [
+  {
+    label: "Find Talent",
+    desc: "Smart search — describe a role in plain language, get an AI-ranked shortlist with per-candidate fit notes.",
+  },
+  {
+    label: "Work the Pipeline",
+    desc: "Pipeline — move Aishah's application through Applied → Reviewed → Shortlisted using the kanban board.",
+  },
+  {
+    label: "Re-Engage past candidates",
+    desc: "Re-Engage — AI surfaces talent pool members who now match your open roles, with a ready outreach draft.",
+  },
+  {
+    label: "Manage Jobs",
+    desc: "Jobs — view TechCorp's 3 posted roles and see which have active applicants.",
   },
 ];

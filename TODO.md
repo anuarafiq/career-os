@@ -51,4 +51,4 @@
 - [ ] **Conversation export** - let users copy or download the chat as plain text for reference.
 - [ ] **Public portfolio page** - shareable no-auth URL (e.g. `/p/[candidateId]`). Landing copy promises this.
 - [ ] **Auth profile creation fix** - move the post-signup `profiles` insert into a Supabase DB trigger / server action so a dropped connection doesn't strand the user.
-- [ ] **Landing page demo flow** - tighten the path a judge walks through for submission.
+- [x] **Landing page demo flow** - tighten the path a judge walks through for submission.

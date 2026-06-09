@@ -37,29 +37,26 @@ export default function DemoLogin() {
   }
 
   return (
-    <div className="flex flex-col items-center gap-3">
-      <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">
-        Or try a live demo
-      </p>
+    <div className="flex flex-col items-center gap-4">
+      <p className="text-sm text-muted-foreground">One-click demo — no account needed</p>
       <div className="flex flex-col sm:flex-row items-center gap-3">
         <button
           onClick={() => handleDemo("candidate")}
           disabled={loading !== null}
-          className="w-full sm:w-auto border border-border text-foreground px-6 py-2.5 rounded-md text-sm font-medium hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full sm:w-auto bg-primary text-primary-foreground px-8 py-3.5 rounded-md text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading === "candidate" ? "Signing in…" : "Demo: Candidate"}
         </button>
         <button
           onClick={() => handleDemo("employer")}
           disabled={loading !== null}
-          className="w-full sm:w-auto border border-border text-foreground px-6 py-2.5 rounded-md text-sm font-medium hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full sm:w-auto bg-primary text-primary-foreground px-8 py-3.5 rounded-md text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading === "employer" ? "Signing in…" : "Demo: Employer"}
         </button>
       </div>
-      {error && (
-        <p className="text-xs text-destructive">{error}</p>
-      )}
+      <p className="text-xs text-muted-foreground">Walkthrough below ↓ — 2 min to explore both paths</p>
+      {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   );
 }
