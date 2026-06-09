@@ -26,6 +26,11 @@ export default function OnboardingPage() {
   const router = useRouter();
   const supabase = createClient();
 
+  const [showImport, setShowImport] = useState(true);
+  const [cvText, setCvText] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [allSkills, setAllSkills] = useState<Skill[]>([]);
@@ -101,6 +106,45 @@ export default function OnboardingPage() {
     setSelectedSkills((prev) =>
       prev.map((s) => (s.id === skillId ? { ...s, level } : s))
     );
+  }
+
+  async function handleImport() {
+    if (!cvText.trim()) return;
+    setImporting(true);
+    setImportError(null);
+    const res = await fetch("/api/resumes/parse", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cvText }),
+    });
+    if (!res.ok) {
+      setImportError("Parsing failed. You can still fill the form manually.");
+      setImporting(false);
+      return;
+    }
+    const parsed = await res.json();
+    if (parsed.name) setName(parsed.name);
+    if (parsed.location) setLocation(parsed.location);
+    if (parsed.bio) setBio(parsed.bio);
+    if (parsed.github_url) setGithubUrl(parsed.github_url);
+    if (parsed.linkedin_url) setLinkedinUrl(parsed.linkedin_url);
+    if (parsed.seeking === "internship" || parsed.seeking === "full_time") setSeeking(parsed.seeking);
+    if (parsed.job_title) setCurrentRole(parsed.job_title);
+    if (parsed.years_exp) setYearsExp(String(parsed.years_exp));
+    if (parsed.qualifications?.length > 0) setQuals(parsed.qualifications);
+    if (parsed.work_experiences?.length > 0) {
+      setWorkExps(parsed.work_experiences);
+      setNoExperience(false);
+    }
+    if (parsed.skills?.length > 0) {
+      const matched = (parsed.skills as string[])
+        .map((skillName: string) => allSkills.find((s) => s.name.toLowerCase() === skillName.toLowerCase()))
+        .filter((s): s is Skill => s !== undefined)
+        .map((s) => ({ id: s.id, level: "mid" as const }));
+      if (matched.length > 0) setSelectedSkills(matched);
+    }
+    setImporting(false);
+    setShowImport(false);
   }
 
   async function handleFinish() {
@@ -209,6 +253,38 @@ export default function OnboardingPage() {
   }
 
   const progress = ((step + 1) / STEPS.length) * 100;
+
+  if (showImport) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-start py-12 px-4">
+        <div className="w-full max-w-xl">
+          <div className="mb-8">
+            <h1 className="font-heading text-2xl font-semibold mb-1">Set up your profile</h1>
+            <p className="text-sm text-muted-foreground">
+              Paste your CV below and we&apos;ll auto-fill your profile, or skip to fill it manually.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <Textarea
+              value={cvText}
+              onChange={(e) => setCvText(e.target.value)}
+              placeholder="Paste your CV or resume text here..."
+              rows={12}
+            />
+            {importError && <p className="text-xs text-[var(--danger)]">{importError}</p>}
+            <div className="flex gap-3 justify-end">
+              <Button variant="ghost" onClick={() => setShowImport(false)}>
+                Skip, fill manually
+              </Button>
+              <Button onClick={handleImport} disabled={!cvText.trim() || importing}>
+                {importing ? "Importing..." : "Auto-fill from CV"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-start py-12 px-4">
