@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { createClient } from "@/lib/supabase/client";
+import SaveToPoolButton from "./SaveToPoolButton";
 
 type MatchResult = {
   candidateId: string;
@@ -18,6 +20,27 @@ export default function SmartMatchPage() {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [message, setMessage] = useState("");
+  const [employerId, setEmployerId] = useState<string | null>(null);
+  const [pooledIds, setPooledIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    async function loadEmployerContext() {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: profile } = await supabase
+        .from("profiles").select("id").eq("user_id", user.id).single();
+      if (!profile) return;
+      const { data: employer } = await supabase
+        .from("employer_profiles").select("id").eq("profile_id", profile.id).single();
+      if (!employer) return;
+      setEmployerId(employer.id);
+      const { data: pool } = await supabase
+        .from("talent_pools").select("candidate_id").eq("employer_id", employer.id);
+      setPooledIds(new Set((pool ?? []).map((p) => p.candidate_id)));
+    }
+    loadEmployerContext();
+  }, []);
 
   async function handleMatch() {
     if (!jobDescription.trim()) return;
@@ -92,6 +115,15 @@ export default function SmartMatchPage() {
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed pl-11">{r.summary}</p>
+                {employerId && (
+                  <div className="pl-11 mt-2">
+                    <SaveToPoolButton
+                      candidateId={r.candidateId}
+                      employerId={employerId}
+                      initialInPool={pooledIds.has(r.candidateId)}
+                    />
+                  </div>
+                )}
               </div>
             ))}
           </div>
