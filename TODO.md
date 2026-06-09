@@ -26,7 +26,7 @@
 - [x] **Resume upload → auto-fill profile** - upload/paste a CV, Claude extracts structured data into the onboarding fields (name, quals, work, skills). Biggest onboarding UX win. Uses `document_url` storage column that already exists.
 - [x] **Skill-gap analysis** - given `current_role` + target node, surface the `skill_gaps` already stored on `career_edges` as "here's your gap to Senior SWE" + an AI learning roadmap.
 - [x] **Job fit score (candidate side)** - reuse `/api/ai/match` logic in reverse so each job on the board shows a fit % and "why you fit" for the logged-in candidate.
-- [ ] **AI application note** - generate a tailored cover note at apply-time from candidate profile + job description.
+- [x] **AI application note** - generate a tailored cover note at apply-time from candidate profile + job description.
 - [ ] **AI job description writer (employer)** - employer pastes rough notes, Claude returns a polished JD for the posting form.
 - [ ] **Personalized path highlighting** - in the career graph, highlight the recommended route from `current_role` to `seeking` with cumulative salary delta + time-to-reach.
 
