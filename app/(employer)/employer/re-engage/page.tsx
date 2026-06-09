@@ -18,11 +18,14 @@ export default function ReEngagePage() {
 
   async function runReEngage() {
     setLoading(true);
-    // TODO: implement re-engage API route in Stage 2
-    await new Promise((r) => setTimeout(r, 1000));
-    setSuggestions([]);
-    setRan(true);
-    setLoading(false);
+    try {
+      const res = await fetch("/api/ai/re-engage", { method: "POST" });
+      const data = await res.json();
+      setSuggestions(data.suggestions ?? []);
+    } finally {
+      setRan(true);
+      setLoading(false);
+    }
   }
 
   return (

@@ -55,6 +55,9 @@ export async function POST(req: Request) {
       }
     }
 
+    // Always try to link demo pool — runs on every login so it works regardless of seeding order
+    await linkDemoPool(admin);
+
     return NextResponse.json({ email: creds.email, password: creds.password });
   } catch (e) {
     console.error("[demo] unexpected error:", e);
@@ -191,6 +194,32 @@ async function seedCandidate(admin: any, userId: string) {
       date: "2024-05-01",
     },
   ]);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function linkDemoPool(admin: any) {
+  const { data: listData } = await admin.auth.admin.listUsers();
+  const users = listData?.users ?? [];
+  const candidateUserId = users.find((u: { email: string }) => u.email === DEMO_CANDIDATE.email)?.id;
+  const employerUserId = users.find((u: { email: string }) => u.email === DEMO_EMPLOYER.email)?.id;
+  if (!candidateUserId || !employerUserId) return;
+
+  const [{ data: candidateRow }, { data: employerRow }] = await Promise.all([
+    admin.from("profiles").select("id").eq("user_id", candidateUserId).single(),
+    admin.from("profiles").select("id").eq("user_id", employerUserId).single(),
+  ]);
+  if (!candidateRow || !employerRow) return;
+
+  const [{ data: candidateProfile }, { data: employerProfile }] = await Promise.all([
+    admin.from("candidate_profiles").select("id").eq("profile_id", candidateRow.id).single(),
+    admin.from("employer_profiles").select("id").eq("profile_id", employerRow.id).single(),
+  ]);
+  if (!candidateProfile || !employerProfile) return;
+
+  await admin.from("talent_pools").upsert(
+    { employer_id: employerProfile.id, candidate_id: candidateProfile.id, source: "applied" },
+    { onConflict: "employer_id,candidate_id" }
+  );
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
