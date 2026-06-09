@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ApplyButton from "./ApplyButton";
+import FitScore from "./FitScore";
 
 export default async function JobsPage() {
   const supabase = await createClient();
@@ -79,6 +80,9 @@ export default async function JobsPage() {
                       <span className="text-xs text-muted-foreground">+{job.required_skills.length - 5} more</span>
                     )}
                   </div>
+                )}
+                {candidateProfile && (
+                  <FitScore jobId={job.id} candidateId={candidateProfile.id} />
                 )}
                 {candidateProfile && (
                   <ApplyButton
