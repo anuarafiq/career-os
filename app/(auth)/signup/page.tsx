@@ -48,7 +48,7 @@ function SignupForm() {
       await supabase.from("profiles").insert({ user_id: data.user.id, role });
     }
 
-    window.location.href = "/onboarding";
+    window.location.href = role === "employer" ? "/employer/dashboard" : "/onboarding";
   }
 
   return (
