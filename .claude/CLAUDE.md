@@ -52,3 +52,5 @@ Line heights: tight 1.2 (headings), body 1.6 (dark bg add 0.05), ui 1.4.
 - **service_role grants:** Supabase service_role does not get table grants automatically when RLS is enabled — must `GRANT ... TO service_role` explicitly (see `supabase/migrations/003_service_role_grants.sql`)
 - **`input[type="month"]` picker icon** styled via `::-webkit-calendar-picker-indicator` in `globals.css` — inverted + amber tint on hover
 - **Demo requires migration 003** — `POST /api/demo` will fail without the service_role grants from that migration
+- **React Flow custom nodes need `<Handle>` components** — without `<Handle type="target">` and `<Handle type="source">` in the custom node JSX, React Flow renders 0 edges silently. Handles can be invisible (`opacity: 0, pointerEvents: "none"`) but must be present.
+- **React Flow `useEdgesState`** — always initialize with computed data, not `[]`. Initializing empty and filling via `useEffect` causes edges to miss the first render.

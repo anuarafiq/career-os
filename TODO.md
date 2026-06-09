@@ -28,7 +28,7 @@
 - [x] **Job fit score (candidate side)** - reuse `/api/ai/match` logic in reverse so each job on the board shows a fit % and "why you fit" for the logged-in candidate.
 - [x] **AI application note** - generate a tailored cover note at apply-time from candidate profile + job description.
 - [x] **AI job description writer (employer)** - employer pastes rough notes, Claude returns a polished JD for the posting form.
-- [ ] **Personalized path highlighting** - in the career graph, highlight the recommended route from `current_role` to `seeking` with cumulative salary delta + time-to-reach.
+- [x] **Personalized path highlighting** - in the career graph, highlight the recommended route from `current_role` to `seeking` with cumulative salary delta + time-to-reach.
 
 ## Platform essentials
 

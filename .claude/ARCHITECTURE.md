@@ -57,6 +57,14 @@ All AI routes use Vercel AI SDK `streamText`/`generateText`. Client: `lib/claude
 - "Generate Learning Roadmap" hidden if all gaps covered. Roadmap state resets on `selectedNode?.id` change via `useEffect`.
 - Returns `{ roadmap: { summary, steps[{ skill, action, resource }], estimatedMonths } }`.
 
+**Path highlighting** (added in personalized-path feature):
+- `findShortestPath(nodes, edges, fromId, toId)` — module-level Dijkstra by `avg_transition_months`. Returns `PathResult | null`. Runs over the full graph (not filtered `visibleNodes`).
+- `targetNodeId` state persisted to `localStorage("career-explore-target")` — survives refresh.
+- Node drag positions captured on drag-end via `handleNodesChange` wrapper, persisted to `localStorage("career-explore-positions")` as `Record<id, {x,y}>`. Restored on mount via `savedPositionsRef`. Data-only updates (isOnPath, isTarget changes) use functional `setRfNodes` that preserves current positions.
+- Path edges: brand amber stroke + `animated: true`. Off-path edges: `opacity: 0.25`. Filter buttons disabled (`pointer-events-none opacity-40`) when destination is set.
+- **React Flow custom nodes require `<Handle>` components** — without them, no edges render at all. `CareerNodeCard` has hidden `<Handle type="target" position={Position.Top}>` + `<Handle type="source" position={Position.Bottom}>` (opacity 0, no pointer events).
+- **Edge initialization**: use `useEdgesState(computedEdges)` not `useEdgesState([])` — initializing with empty array means RF renders 0 edges on first paint and the effect that fills them can arrive too late.
+
 ### Certificates (`/certificates`)
 - Migration `004_credential_url.sql` adds `credential_url text` to `qualifications`.
 - Portfolio page splits Education and Certificates into separate sections. Certs with `credential_url` show Coursera badge + Verify link + Recent badge (earned within 90 days).

@@ -1,18 +1,19 @@
 "use client";
 
-import { useCallback, useState, useEffect, useMemo } from "react";
+import { useCallback, useRef, useState, useEffect, useMemo } from "react";
 import ReactFlow, {
   Node,
   Edge,
   Background,
   Controls,
   MiniMap,
+  Handle,
+  Position,
   useNodesState,
   useEdgesState,
-  addEdge,
   MarkerType,
   type NodeTypes,
-  type Connection,
+  type NodeChange,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { cn } from "@/lib/utils";
@@ -20,6 +21,20 @@ import type { Database } from "@/types/database";
 
 type CareerNode = Database["public"]["Tables"]["career_nodes"]["Row"];
 type CareerEdge = Database["public"]["Tables"]["career_edges"]["Row"];
+
+type CareerNodeCardData = {
+  node: CareerNode;
+  isActive: boolean;
+  isHighlighted: boolean;
+  isOnPath: boolean;
+  isTarget: boolean;
+};
+
+type PathResult = {
+  nodeIds: string[];
+  edgeIds: string[];
+  totalMonths: number;
+};
 
 const LEVEL_Y: Record<string, number> = {
   entry: 0,
@@ -38,29 +53,101 @@ const CATEGORY_X: Record<string, number> = {
   Business: 1500,
 };
 
-function CareerNodeCard({ data }: { data: { node: CareerNode; isActive: boolean; isHighlighted: boolean } }) {
-  const { node, isActive, isHighlighted } = data;
+function findShortestPath(
+  nodes: CareerNode[],
+  edges: CareerEdge[],
+  fromId: string,
+  toId: string
+): PathResult | null {
+  if (fromId === toId) return { nodeIds: [fromId], edgeIds: [], totalMonths: 0 };
+
+  const adj = new Map<string, { to: string; edgeId: string; weight: number }[]>();
+  for (const node of nodes) adj.set(node.id, []);
+  for (const edge of edges) {
+    adj.get(edge.from_node_id)?.push({
+      to: edge.to_node_id,
+      edgeId: edge.id,
+      weight: edge.avg_transition_months,
+    });
+  }
+
+  const dist = new Map<string, number>();
+  const prev = new Map<string, { nodeId: string; edgeId: string } | null>();
+  for (const node of nodes) dist.set(node.id, Infinity);
+  dist.set(fromId, 0);
+  prev.set(fromId, null);
+
+  const queue: [number, string][] = [[0, fromId]];
+
+  while (queue.length > 0) {
+    queue.sort((a, b) => a[0] - b[0]);
+    const [cost, u] = queue.shift()!;
+    if (cost > (dist.get(u) ?? Infinity)) continue;
+    if (u === toId) break;
+
+    for (const { to, edgeId, weight } of adj.get(u) ?? []) {
+      const newCost = cost + weight;
+      if (newCost < (dist.get(to) ?? Infinity)) {
+        dist.set(to, newCost);
+        prev.set(to, { nodeId: u, edgeId });
+        queue.push([newCost, to]);
+      }
+    }
+  }
+
+  if ((dist.get(toId) ?? Infinity) === Infinity) return null;
+
+  const nodeIds: string[] = [];
+  const edgeIds: string[] = [];
+  let cur: string | null = toId;
+  while (cur !== null) {
+    nodeIds.unshift(cur);
+    const p = prev.get(cur);
+    if (p) {
+      edgeIds.unshift(p.edgeId);
+      cur = p.nodeId;
+    } else {
+      cur = null;
+    }
+  }
+
+  return { nodeIds, edgeIds, totalMonths: dist.get(toId)! };
+}
+
+function CareerNodeCard({ data }: { data: CareerNodeCardData }) {
+  const { node, isActive, isTarget, isOnPath, isHighlighted } = data;
   return (
-    <div
-      className={cn(
-        "px-3 py-2 rounded-lg border text-xs font-medium transition-all cursor-pointer select-none min-w-[140px] text-center",
-        isActive
-          ? "bg-brand text-primary-foreground border-brand shadow-lg shadow-brand/20"
-          : isHighlighted
-          ? "bg-brand-subtle border-brand/50 text-foreground"
-          : "bg-card border-border text-foreground hover:border-brand/40"
-      )}
-    >
-      <p className="font-semibold text-[11px] leading-tight">{node.title}</p>
-      <p
+    <>
+      <Handle type="target" position={Position.Top} style={{ opacity: 0, pointerEvents: "none" }} />
+      <div
         className={cn(
-          "mt-1 tabular font-bold text-[13px]",
-          isActive ? "text-primary-foreground/80" : "text-brand"
+          "px-3 py-2 rounded-lg border text-xs font-medium transition-all cursor-pointer select-none min-w-[140px] text-center",
+          isActive
+            ? "bg-brand text-primary-foreground border-brand shadow-lg shadow-brand/20"
+            : isTarget
+            ? "bg-transparent border-2 border-brand text-foreground shadow-lg shadow-brand/30 ring-2 ring-brand/40"
+            : isOnPath
+            ? "bg-brand-subtle border-brand/60 text-foreground ring-1 ring-brand/40"
+            : isHighlighted
+            ? "bg-brand-subtle border-brand/50 text-foreground"
+            : "bg-card border-border text-foreground hover:border-brand/40"
         )}
       >
-        RM {(node.avg_salary_myr_min / 1000).toFixed(0)}k–{(node.avg_salary_myr_max / 1000).toFixed(0)}k
-      </p>
-    </div>
+        <p className="font-semibold text-[11px] leading-tight">{node.title}</p>
+        <p
+          className={cn(
+            "mt-1 tabular font-bold text-[13px]",
+            isActive ? "text-primary-foreground/80" : "text-brand"
+          )}
+        >
+          RM {(node.avg_salary_myr_min / 1000).toFixed(0)}k–{(node.avg_salary_myr_max / 1000).toFixed(0)}k
+        </p>
+        {isTarget && (
+          <p className="text-[9px] text-brand font-semibold mt-0.5 uppercase tracking-wide">Target</p>
+        )}
+      </div>
+      <Handle type="source" position={Position.Bottom} style={{ opacity: 0, pointerEvents: "none" }} />
+    </>
   );
 }
 
@@ -85,24 +172,39 @@ export function CareerPathExplorer({
   candidateSkillNames: string[];
 }) {
   const [selectedNode, setSelectedNode] = useState<CareerNode | null>(null);
-  const [targetNodeId, setTargetNodeId] = useState<string | null>(null);
+  const [targetNodeId, setTargetNodeId] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return localStorage.getItem("career-explore-target") ?? null;
+  });
   const [filterCategory, setFilterCategory] = useState<string>("all");
+  const savedPositionsRef = useRef<Record<string, { x: number; y: number }>>({});
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
   const [roadmapLoading, setRoadmapLoading] = useState(false);
   const [roadmapError, setRoadmapError] = useState<string | null>(null);
 
   const categories = useMemo(() => Array.from(new Set(careerNodes.map((n) => n.category))), [careerNodes]);
 
-  const visibleNodes = useMemo(() => {
-    if (filterCategory === "all") return careerNodes;
-    return careerNodes.filter((n) => n.category === filterCategory);
-  }, [careerNodes, filterCategory]);
-
   const currentNode = careerNodes.find(
     (n) => n.title.toLowerCase() === (currentRole?.toLowerCase() ?? "")
   );
 
-  // Build RF nodes
+  const targetNode = careerNodes.find((n) => n.id === targetNodeId) ?? null;
+
+  const pathResult = useMemo<PathResult | null>(() => {
+    if (!currentNode || !targetNodeId || currentNode.id === targetNodeId) return null;
+    return findShortestPath(careerNodes, careerEdges, currentNode.id, targetNodeId);
+  }, [careerNodes, careerEdges, currentNode, targetNodeId]);
+
+  const pathNodeIdSet = useMemo(() => new Set(pathResult?.nodeIds ?? []), [pathResult]);
+  const pathEdgeIdSet = useMemo(() => new Set(pathResult?.edgeIds ?? []), [pathResult]);
+
+  const visibleNodes = useMemo(() => {
+    if (targetNodeId) return careerNodes;
+    if (filterCategory === "all") return careerNodes;
+    return careerNodes.filter((n) => n.category === filterCategory);
+  }, [careerNodes, filterCategory, targetNodeId]);
+
+  // Build RF nodes — apply saved positions so drag layout survives data updates
   const categoryNodes = useMemo(() => {
     const catMap: Record<string, number> = {};
     return visibleNodes.map((node) => {
@@ -111,40 +213,106 @@ export function CareerPathExplorer({
       const xOffset = catMap[cat] * 160;
       catMap[cat]++;
       const catBase = CATEGORY_X[cat] ?? Object.keys(CATEGORY_X).length * 300;
+      const defaultPos = { x: catBase + xOffset, y: LEVEL_Y[node.level] ?? 0 };
+
+      const isActive = node.id === currentNode?.id;
+      const isTarget = node.id === targetNodeId;
+      const isOnPath = !isActive && !isTarget && pathNodeIdSet.has(node.id);
+
       return {
         id: node.id,
         type: "careerNode",
-        position: { x: catBase + xOffset, y: LEVEL_Y[node.level] ?? 0 },
+        position: savedPositionsRef.current[node.id] ?? defaultPos,
         data: {
           node,
-          isActive: node.id === currentNode?.id,
+          isActive,
           isHighlighted: false,
-        },
+          isOnPath,
+          isTarget,
+        } satisfies CareerNodeCardData,
       } as Node;
     });
-  }, [visibleNodes, currentNode]);
+  }, [visibleNodes, currentNode, targetNodeId, pathNodeIdSet]);
+
+  const categoryEdges = useMemo<Edge[]>(() => {
+    const visibleIds = new Set(visibleNodes.map((n) => n.id));
+    const pathIsActive = pathEdgeIdSet.size > 0;
+    return careerEdges
+      .filter((e) => visibleIds.has(e.from_node_id) && visibleIds.has(e.to_node_id))
+      .map((e) => {
+        const onPath = pathEdgeIdSet.has(e.id);
+        return {
+          id: e.id,
+          source: e.from_node_id,
+          target: e.to_node_id,
+          markerEnd: { type: MarkerType.ArrowClosed },
+          animated: onPath,
+          style: onPath
+            ? { stroke: "oklch(0.82 0.14 72)", strokeWidth: 2 }
+            : pathIsActive
+            ? { stroke: "oklch(0.35 0.016 258)", strokeWidth: 1, opacity: 0.25 }
+            : { stroke: "oklch(0.35 0.016 258)", strokeWidth: 1 },
+        } as Edge;
+      });
+  }, [careerEdges, visibleNodes, pathEdgeIdSet]);
 
   const [rfNodes, setRfNodes, onNodesChange] = useNodesState(categoryNodes);
-  const [rfEdges, setRfEdges, onEdgesChange] = useEdgesState([]);
+  const [rfEdges, setRfEdges, onEdgesChange] = useEdgesState(categoryEdges);
 
+  // Restore saved positions from localStorage on first mount
   useEffect(() => {
-    setRfNodes(categoryNodes);
+    try {
+      const stored = localStorage.getItem("career-explore-positions");
+      if (stored) savedPositionsRef.current = JSON.parse(stored);
+    } catch { /* ignore */ }
+  }, []);
+
+  // Persist targetNodeId to localStorage
+  useEffect(() => {
+    if (targetNodeId) {
+      localStorage.setItem("career-explore-target", targetNodeId);
+    } else {
+      localStorage.removeItem("career-explore-target");
+    }
+  }, [targetNodeId]);
+
+  // Update node data (visual states) without clobbering user-dragged positions
+  useEffect(() => {
+    setRfNodes((prev) => {
+      const posMap = new Map(prev.map((n) => [n.id, n.position]));
+      return categoryNodes.map((n) => ({
+        ...n,
+        position: posMap.get(n.id) ?? n.position,
+      }));
+    });
   }, [categoryNodes, setRfNodes]);
 
   useEffect(() => {
-    const visibleIds = new Set(visibleNodes.map((n) => n.id));
-    const edges: Edge[] = careerEdges
-      .filter((e) => visibleIds.has(e.from_node_id) && visibleIds.has(e.to_node_id))
-      .map((e) => ({
-        id: e.id,
-        source: e.from_node_id,
-        target: e.to_node_id,
-        markerEnd: { type: MarkerType.ArrowClosed },
-        style: { stroke: "oklch(0.35 0.016 258)", strokeWidth: 1 },
-        animated: false,
-      }));
-    setRfEdges(edges);
-  }, [careerEdges, visibleNodes, setRfEdges]);
+    setRfEdges(categoryEdges);
+  }, [categoryEdges, setRfEdges]);
+
+  // Capture drag-end positions and persist them
+  const handleNodesChange = useCallback(
+    (changes: NodeChange[]) => {
+      onNodesChange(changes);
+      const updates: Record<string, { x: number; y: number }> = {};
+      for (const c of changes) {
+        if (c.type === "position" && c.position && !c.dragging) {
+          updates[c.id] = c.position;
+        }
+      }
+      if (Object.keys(updates).length > 0) {
+        savedPositionsRef.current = { ...savedPositionsRef.current, ...updates };
+        try {
+          localStorage.setItem(
+            "career-explore-positions",
+            JSON.stringify(savedPositionsRef.current)
+          );
+        } catch { /* ignore */ }
+      }
+    },
+    [onNodesChange]
+  );
 
   const onNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
@@ -211,11 +379,13 @@ export function CareerPathExplorer({
               key={cat}
               type="button"
               onClick={() => setFilterCategory(cat)}
+              disabled={!!targetNodeId}
               className={cn(
                 "text-xs px-2.5 py-1 rounded-md transition-colors font-medium",
                 filterCategory === cat
                   ? "bg-brand text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
+                !!targetNodeId && "opacity-40 pointer-events-none"
               )}
             >
               {cat === "all" ? "All" : cat}
@@ -223,10 +393,31 @@ export function CareerPathExplorer({
           ))}
         </div>
 
+        {/* Path active chip */}
+        {targetNodeId && targetNode && (
+          <div className="absolute bottom-4 left-4 z-10 flex items-center gap-2 bg-card border border-brand/40 rounded-full px-3 py-1.5 shadow-lg text-xs font-medium">
+            <span className="w-2 h-2 rounded-full bg-brand animate-pulse shrink-0" />
+            <span className="text-foreground">
+              Path to <span className="text-brand">{targetNode.title}</span>
+            </span>
+            {!pathResult && currentNode && (
+              <span className="text-muted-foreground ml-1">(no route found)</span>
+            )}
+            <button
+              type="button"
+              onClick={() => setTargetNodeId(null)}
+              className="ml-1 text-muted-foreground hover:text-foreground transition-colors leading-none text-base"
+              aria-label="Clear destination"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
         <ReactFlow
           nodes={rfNodes}
           edges={rfEdges}
-          onNodesChange={onNodesChange}
+          onNodesChange={handleNodesChange}
           onEdgesChange={onEdgesChange}
           onNodeClick={onNodeClick}
           nodeTypes={nodeTypes}
@@ -239,9 +430,13 @@ export function CareerPathExplorer({
           <Background color="oklch(0.26 0.014 258)" gap={24} />
           <Controls />
           <MiniMap
-            nodeColor={(n) =>
-              (n.data as { isActive: boolean }).isActive ? "oklch(0.82 0.14 72)" : "oklch(0.26 0.014 258)"
-            }
+            nodeColor={(n) => {
+              const d = n.data as CareerNodeCardData;
+              if (d.isActive) return "oklch(0.82 0.14 72)";
+              if (d.isTarget) return "oklch(0.72 0.14 72)";
+              if (d.isOnPath) return "oklch(0.60 0.10 72)";
+              return "oklch(0.26 0.014 258)";
+            }}
             style={{ background: "oklch(0.17 0.012 258)", border: "1px solid oklch(0.26 0.014 258)" }}
           />
         </ReactFlow>
@@ -251,12 +446,167 @@ export function CareerPathExplorer({
       <aside
         className={cn(
           "w-80 shrink-0 border-l border-border bg-card flex flex-col transition-all",
-          selectedNode ? "translate-x-0" : "translate-x-full hidden"
+          (selectedNode || targetNodeId) ? "translate-x-0" : "translate-x-full hidden"
         )}
       >
+        {/* Path summary section */}
+        {targetNodeId && targetNode && currentNode && (
+          <div className="border-b border-border shrink-0">
+            <div className="px-5 py-3 flex items-start justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Path to</p>
+                <h3 className="font-heading font-semibold text-sm mt-0.5">{targetNode.title}</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setTargetNodeId(null)}
+                className="text-xs text-muted-foreground hover:text-brand border border-border hover:border-brand/40 px-2 py-1 rounded-md transition-colors"
+              >
+                Clear
+              </button>
+            </div>
+
+            {!pathResult ? (
+              <div className="px-5 pb-4">
+                <p className="text-xs text-muted-foreground">
+                  No route found from <span className="text-foreground">{currentNode.title}</span> to{" "}
+                  <span className="text-foreground">{targetNode.title}</span> in the graph.
+                </p>
+              </div>
+            ) : (
+              <div className="px-5 pb-4 flex flex-col gap-4 max-h-96 overflow-y-auto">
+                {/* Hop timeline */}
+                <div className="flex flex-col gap-0">
+                  {pathResult.nodeIds.map((nodeId, i) => {
+                    const node = careerNodes.find((n) => n.id === nodeId);
+                    if (!node) return null;
+                    const edgeId = pathResult.edgeIds[i];
+                    const hopEdge = edgeId ? careerEdges.find((e) => e.id === edgeId) : null;
+                    const isFirst = i === 0;
+                    const isLast = i === pathResult.nodeIds.length - 1;
+                    return (
+                      <div key={nodeId} className="flex gap-3">
+                        <div className="flex flex-col items-center">
+                          <div
+                            className={cn(
+                              "w-2 h-2 rounded-full shrink-0 mt-0.5",
+                              isFirst
+                                ? "bg-brand"
+                                : isLast
+                                ? "border-2 border-brand bg-transparent"
+                                : "bg-brand/50"
+                            )}
+                          />
+                          {!isLast && <div className="w-px flex-1 bg-brand/20 my-1" />}
+                        </div>
+                        <div className="pb-3">
+                          <p className="text-xs font-medium text-foreground leading-tight">{node.title}</p>
+                          {hopEdge && (
+                            <p className="text-[11px] text-muted-foreground mt-0.5 tabular">
+                              ~{hopEdge.avg_transition_months} mo transition
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Totals + skill gaps */}
+                {(() => {
+                  const currentMid = (currentNode.avg_salary_myr_min + currentNode.avg_salary_myr_max) / 2;
+                  const targetMid = (targetNode.avg_salary_myr_min + targetNode.avg_salary_myr_max) / 2;
+                  const salaryDelta = targetMid - currentMid;
+                  const pct = ((salaryDelta / currentMid) * 100).toFixed(0);
+
+                  const allGapsOnPath = pathResult.edgeIds.flatMap((eid) => {
+                    const edge = careerEdges.find((e) => e.id === eid);
+                    return edge?.skill_gaps ?? [];
+                  });
+                  const uniqueGaps = Array.from(new Set(allGapsOnPath.map((g) => g.toLowerCase())));
+                  const needGaps = uniqueGaps.filter((g) => !skillNamesLower.has(g));
+                  const haveGaps = uniqueGaps.filter((g) => skillNamesLower.has(g));
+
+                  return (
+                    <>
+                      <div className="bg-background rounded-lg border border-border p-3 flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">Total time</span>
+                          <span className="text-xs font-semibold tabular text-foreground">
+                            ~{pathResult.totalMonths} months
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">Salary change</span>
+                          <span
+                            className={cn(
+                              "text-xs font-semibold tabular",
+                              salaryDelta >= 0 ? "text-success" : "text-destructive"
+                            )}
+                          >
+                            {salaryDelta >= 0 ? "+" : ""}RM {Math.abs(salaryDelta / 1000).toFixed(1)}k/mo (
+                            {salaryDelta >= 0 ? "+" : ""}
+                            {pct}%)
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">Skills to acquire</span>
+                          <span className="text-xs font-semibold tabular text-foreground">
+                            {needGaps.length}
+                          </span>
+                        </div>
+                      </div>
+
+                      {(needGaps.length > 0 || haveGaps.length > 0) && (
+                        <div className="flex flex-col gap-2">
+                          {haveGaps.length > 0 && (
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1.5">
+                                You already have ({haveGaps.length}):
+                              </p>
+                              <div className="flex flex-wrap gap-1">
+                                {haveGaps.map((skill) => (
+                                  <span
+                                    key={skill}
+                                    className="text-[10px] bg-success/10 border border-success/20 text-success px-2 py-0.5 rounded-full capitalize"
+                                  >
+                                    {skill}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {needGaps.length > 0 && (
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1.5">
+                                Still to acquire ({needGaps.length}):
+                              </p>
+                              <div className="flex flex-wrap gap-1">
+                                {needGaps.map((skill) => (
+                                  <span
+                                    key={skill}
+                                    className="text-[10px] bg-brand-subtle border border-brand/20 text-brand px-2 py-0.5 rounded-full capitalize"
+                                  >
+                                    {skill}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Node detail section */}
         {selectedNode && (
           <>
-            <div className="px-5 py-4 border-b border-border flex items-start justify-between">
+            <div className="px-5 py-4 border-b border-border flex items-start justify-between shrink-0">
               <div>
                 <h2 className="font-heading font-semibold text-base">{selectedNode.title}</h2>
                 <p className="text-xs text-muted-foreground mt-0.5 capitalize">
@@ -273,9 +623,29 @@ export function CareerPathExplorer({
             </div>
 
             <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-5">
+              {/* Set as destination */}
+              {currentNode && selectedNode.id !== currentNode.id && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setTargetNodeId(targetNodeId === selectedNode.id ? null : selectedNode.id)
+                  }
+                  className={cn(
+                    "w-full px-4 py-2 text-xs font-medium rounded-md border transition-colors",
+                    targetNodeId === selectedNode.id
+                      ? "bg-brand/10 border-brand text-brand hover:bg-brand/20"
+                      : "bg-transparent border-brand/40 text-brand hover:border-brand hover:bg-brand/10"
+                  )}
+                >
+                  {targetNodeId === selectedNode.id ? "Destination set ✓" : "Set as destination →"}
+                </button>
+              )}
+
               {/* Salary */}
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-2">Salary range (MYR/month)</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-2">
+                  Salary range (MYR/month)
+                </p>
                 <div className="flex items-baseline gap-2">
                   <span className="text-brand tabular font-bold text-2xl font-heading">
                     RM {(selectedNode.avg_salary_myr_min / 1000).toFixed(0)}k
@@ -289,21 +659,26 @@ export function CareerPathExplorer({
 
               {/* Time in role */}
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-1">Typical time in role</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-1">
+                  Typical time in role
+                </p>
                 <p className="text-foreground font-medium tabular">
-                  ~{selectedNode.typical_years_in_role} year{selectedNode.typical_years_in_role !== 1 ? "s" : ""}
+                  ~{selectedNode.typical_years_in_role} year
+                  {selectedNode.typical_years_in_role !== 1 ? "s" : ""}
                 </p>
               </div>
 
               {/* Description */}
               {selectedNode.description && (
                 <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-1">About this role</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-1">
+                    About this role
+                  </p>
                   <p className="text-sm text-foreground leading-relaxed">{selectedNode.description}</p>
                 </div>
               )}
 
-              {/* Transition from current */}
+              {/* Transition from current (direct edge only) */}
               {selectedEdge && currentNode && (
                 <div className="bg-background rounded-lg border border-border p-4">
                   <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-2">
@@ -315,37 +690,46 @@ export function CareerPathExplorer({
                     </span>
                     <span className="text-xs text-muted-foreground">avg. transition time</span>
                   </div>
-                  {partitionedGaps && (partitionedGaps.have.length > 0 || partitionedGaps.need.length > 0) && (
-                    <div className="flex flex-col gap-3 mt-1">
-                      {partitionedGaps.have.length > 0 && (
-                        <div>
-                          <p className="text-xs text-muted-foreground mb-1.5">You already have:</p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {partitionedGaps.have.map((skill) => (
-                              <span key={skill} className="text-xs bg-success/10 border border-success/20 text-success px-2.5 py-1 rounded-full">
-                                {skill}
-                              </span>
-                            ))}
+                  {partitionedGaps &&
+                    (partitionedGaps.have.length > 0 || partitionedGaps.need.length > 0) && (
+                      <div className="flex flex-col gap-3 mt-1">
+                        {partitionedGaps.have.length > 0 && (
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1.5">You already have:</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {partitionedGaps.have.map((skill) => (
+                                <span
+                                  key={skill}
+                                  className="text-xs bg-success/10 border border-success/20 text-success px-2.5 py-1 rounded-full"
+                                >
+                                  {skill}
+                                </span>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      )}
-                      {partitionedGaps.need.length > 0 && (
-                        <div>
-                          <p className="text-xs text-muted-foreground mb-1.5">You still need:</p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {partitionedGaps.need.map((skill) => (
-                              <span key={skill} className="text-xs bg-brand-subtle border border-brand/20 text-brand px-2.5 py-1 rounded-full">
-                                {skill}
-                              </span>
-                            ))}
+                        )}
+                        {partitionedGaps.need.length > 0 && (
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1.5">You still need:</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {partitionedGaps.need.map((skill) => (
+                                <span
+                                  key={skill}
+                                  className="text-xs bg-brand-subtle border border-brand/20 text-brand px-2.5 py-1 rounded-full"
+                                >
+                                  {skill}
+                                </span>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      )}
-                      {partitionedGaps.need.length === 0 && (
-                        <p className="text-xs text-success">You have all the skills for this transition.</p>
-                      )}
-                    </div>
-                  )}
+                        )}
+                        {partitionedGaps.need.length === 0 && (
+                          <p className="text-xs text-success">
+                            You have all the skills for this transition.
+                          </p>
+                        )}
+                      </div>
+                    )}
                 </div>
               )}
 
@@ -361,7 +745,9 @@ export function CareerPathExplorer({
                       <span className="inline-block w-3 h-3 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
                       Generating roadmap...
                     </>
-                  ) : "Generate Learning Roadmap"}
+                  ) : (
+                    "Generate Learning Roadmap"
+                  )}
                 </button>
               )}
               {roadmapError && <p className="text-xs text-destructive">{roadmapError}</p>}
@@ -373,7 +759,9 @@ export function CareerPathExplorer({
                     {roadmap.steps.map((step, i) => (
                       <div key={step.skill} className="bg-background rounded-md border border-border p-3">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[10px] font-bold text-brand tabular w-4 text-center">{i + 1}</span>
+                          <span className="text-[10px] font-bold text-brand tabular w-4 text-center">
+                            {i + 1}
+                          </span>
                           <span className="text-xs font-semibold text-foreground">{step.skill}</span>
                         </div>
                         <p className="text-xs text-muted-foreground pl-6 mb-0.5">{step.action}</p>
@@ -400,15 +788,26 @@ export function CareerPathExplorer({
               {/* Salary delta */}
               {currentNode && selectedNode.id !== currentNode.id && (
                 <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-1">Salary delta</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-1">
+                    Salary delta
+                  </p>
                   {(() => {
-                    const currentMid = (currentNode.avg_salary_myr_min + currentNode.avg_salary_myr_max) / 2;
-                    const targetMid = (selectedNode.avg_salary_myr_min + selectedNode.avg_salary_myr_max) / 2;
+                    const currentMid =
+                      (currentNode.avg_salary_myr_min + currentNode.avg_salary_myr_max) / 2;
+                    const targetMid =
+                      (selectedNode.avg_salary_myr_min + selectedNode.avg_salary_myr_max) / 2;
                     const delta = targetMid - currentMid;
                     const pct = ((delta / currentMid) * 100).toFixed(0);
                     return (
-                      <p className={cn("font-semibold tabular text-lg", delta >= 0 ? "text-success" : "text-destructive")}>
-                        {delta >= 0 ? "+" : ""}RM {Math.abs(delta / 1000).toFixed(1)}k/mo ({delta >= 0 ? "+" : ""}{pct}%)
+                      <p
+                        className={cn(
+                          "font-semibold tabular text-lg",
+                          delta >= 0 ? "text-success" : "text-destructive"
+                        )}
+                      >
+                        {delta >= 0 ? "+" : ""}RM {Math.abs(delta / 1000).toFixed(1)}k/mo (
+                        {delta >= 0 ? "+" : ""}
+                        {pct}%)
                       </p>
                     );
                   })()}
@@ -418,11 +817,21 @@ export function CareerPathExplorer({
           </>
         )}
 
-        {!selectedNode && (
+        {/* Empty state — target set but no node selected */}
+        {!selectedNode && targetNodeId && (
+          <div className="flex-1 flex items-center justify-center px-8 text-center">
+            <p className="text-sm text-muted-foreground">Click any node to see its details</p>
+          </div>
+        )}
+
+        {/* Empty state — nothing active */}
+        {!selectedNode && !targetNodeId && (
           <div className="flex-1 flex items-center justify-center px-8 text-center">
             <div>
               <p className="text-4xl mb-3">◈</p>
-              <p className="text-sm text-muted-foreground">Click any role to see salary, transition time, and skill gaps</p>
+              <p className="text-sm text-muted-foreground">
+                Click any role to see salary, transition time, and skill gaps
+              </p>
             </div>
           </div>
         )}
