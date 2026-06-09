@@ -32,7 +32,7 @@
 
 ## Platform essentials
 
-- [ ] **Job board search + filters** - filter by location, salary band, skills, employment type. Currently shows an unfiltered list.
+- [x] **Job board search + filters** - filter by location, salary band, skills, employment type. Currently shows an unfiltered list.
 - [ ] **Saved jobs / bookmarks** - let candidates bookmark jobs to revisit.
 - [ ] **Employer pipeline analytics** - conversion funnel across stages, time-in-stage. Trading-terminal aesthetic fits the brand.
 - [ ] **File upload for qualifications** - `document_url` column exists but no upload flow (Supabase Storage).
