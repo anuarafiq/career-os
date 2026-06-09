@@ -41,7 +41,8 @@
 ## Polish + completeness
 
 - [x] **Certificates page** - `/certificates` self-service UI: paste Coursera URL → auto-extract details → save → AI skill suggestions → career path tie-in. Portfolio splits Education and Certificates sections with Coursera badge and Recent indicator.
-- [ ] **Profile editing** - post-onboarding edit flows for bio, links, skills, qualifications, work experience. Currently read-only after onboarding. [Portfolio page displays profile data but no edit UI]
+- [x] **Profile editing (basic info)** - `app/(candidate)/profile/edit/` — edit name, location, bio, GitHub/LinkedIn, seeking type, job title, years exp. "Profile" nav item added to `CandidateSidebar`. Employer equivalent at `app/(employer)/employer/profile/` — edit company name, industry, size, website. "Company Profile" nav item added to `EmployerSidebar`. Both do `UPDATE`, not insert. Skills/qualifications/work experience editing still pending below.
+- [ ] **Profile editing (skills, quals, work exp)** - edit/delete flows for `candidate_skills`, `qualifications`, `work_experiences` post-onboarding. Still read-only in portfolio view.
 - [ ] **Portfolio item CRUD** - add/edit/delete `portfolio_items`. Page renders them but nothing populates them. [Portfolio items seeded in demo but no create/edit UI]
 - [ ] **Coach session persistence** - read/write `coach_sessions` so conversations survive reloads. Table exists, route never touches it. [Coach component stores messages in-memory only, no DB persistence]
 - [ ] **Profile completeness nudge** - if candidate profile is sparse (no skills, no bio), coach should prompt the user to fill their profile instead of giving hollow generic advice.
