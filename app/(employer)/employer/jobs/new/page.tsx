@@ -20,6 +20,7 @@ export default function NewJobPage() {
   const [skillInput, setSkillInput] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
+  const [jdLoading, setJdLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function addSkill(raw: string) {
@@ -34,6 +35,22 @@ export default function NewJobPage() {
       addSkill(skillInput);
     } else if (e.key === "Backspace" && !skillInput && skills.length) {
       setSkills((prev) => prev.slice(0, -1));
+    }
+  }
+
+  async function generateJD() {
+    if (!description.trim()) return;
+    setJdLoading(true);
+    try {
+      const res = await fetch("/api/ai/jd-writer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, location, employmentType, skills, roughNotes: description }),
+      });
+      const data = await res.json();
+      if (data.description) setDescription(data.description);
+    } finally {
+      setJdLoading(false);
     }
   }
 
@@ -225,13 +242,23 @@ export default function NewJobPage() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="description">Description</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="description">Description</Label>
+              <button
+                type="button"
+                onClick={generateJD}
+                disabled={!description.trim() || jdLoading}
+                className="text-xs text-[var(--brand)] disabled:opacity-40 hover:underline transition-opacity"
+              >
+                {jdLoading ? "Generating…" : "Polish with AI ✦"}
+              </button>
+            </div>
             <Textarea
               id="description"
-              rows={5}
+              rows={6}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe responsibilities, requirements, and benefits…"
+              placeholder="Paste rough notes or bullet points here — then click 'Polish with AI' to generate a full JD, or write it manually."
             />
           </div>
 
