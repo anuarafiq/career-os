@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import Link from "next/link";
+import ApplyButton from "./ApplyButton";
 
 export default async function JobsPage() {
   const supabase = await createClient();
@@ -12,6 +12,29 @@ export default async function JobsPage() {
     .select("*, employer_profiles(company_name)")
     .eq("status", "open")
     .order("created_at", { ascending: false });
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+
+  const { data: candidateProfile } = profile
+    ? await supabase
+        .from("candidate_profiles")
+        .select("id")
+        .eq("profile_id", profile.id)
+        .single()
+    : { data: null };
+
+  const { data: existingApplications } = candidateProfile
+    ? await supabase
+        .from("applications")
+        .select("job_id")
+        .eq("candidate_id", candidateProfile.id)
+    : { data: [] };
+
+  const appliedJobIds = new Set((existingApplications ?? []).map((a) => a.job_id));
 
   return (
     <div className="px-8 py-8 max-w-3xl">
@@ -56,6 +79,13 @@ export default async function JobsPage() {
                       <span className="text-xs text-muted-foreground">+{job.required_skills.length - 5} more</span>
                     )}
                   </div>
+                )}
+                {candidateProfile && (
+                  <ApplyButton
+                    jobId={job.id}
+                    candidateId={candidateProfile.id}
+                    initialApplied={appliedJobIds.has(job.id)}
+                  />
                 )}
               </div>
             );

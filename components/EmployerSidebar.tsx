@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 
 const navItems = [
   { href: "/employer/dashboard", label: "Dashboard", icon: "⊟" },
+  { href: "/employer/jobs",      label: "Jobs",       icon: "◑" },
   { href: "/employer/search",    label: "Find Talent", icon: "◒" },
   { href: "/employer/pipeline",  label: "Pipeline", icon: "◓" },
   { href: "/employer/re-engage", label: "Re-Engage", icon: "◐" },

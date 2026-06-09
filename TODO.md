@@ -11,8 +11,8 @@
 ## Critical (core loop is broken without these)
 
 - [x] **Employer setup page** `/employer/setup` - form to create `employer_profiles` row (company name, industry, size, website). Dashboard links here but page doesn't exist.
-- [ ] **Job posting UI** - form for employers to create jobs (title, location, salary range, skills, employment type). Insert into `jobs` table.
-- [ ] **Apply button** - candidate-side apply action on the jobs page. Insert into `applications` table. Guard against duplicate applications.
+- [x] **Job posting UI** - form for employers to create jobs (title, location, salary range, skills, employment type). Insert into `jobs` table.
+- [x] **Apply button** - candidate-side apply action on the jobs page. Insert into `applications` table. Guard against duplicate applications.
 
 ## Important (referenced but not wired up)
 
@@ -36,7 +36,7 @@
 - [ ] **Saved jobs / bookmarks** - let candidates bookmark jobs to revisit.
 - [ ] **Employer pipeline analytics** - conversion funnel across stages, time-in-stage. Trading-terminal aesthetic fits the brand.
 - [ ] **File upload for qualifications** - `document_url` column exists but no upload flow (Supabase Storage).
-- [ ] **Run migration 004** - `supabase/migrations/004_credential_url.sql` adds `credential_url` to `qualifications`. Must be applied to Supabase before Certificates page works.
+- [x] **Run migration 004** - `supabase/migrations/004_credential_url.sql` adds `credential_url` to `qualifications`.
 
 ## Polish + completeness
 

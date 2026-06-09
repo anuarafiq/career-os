@@ -54,7 +54,12 @@ export default async function EmployerDashboard() {
         ))}
       </div>
 
-      <h2 className="font-heading font-semibold text-sm uppercase tracking-wider text-muted-foreground mb-3">Actions</h2>
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="font-heading font-semibold text-sm uppercase tracking-wider text-muted-foreground">Actions</h2>
+        <Link href="/employer/jobs/new" className="bg-brand text-background px-4 py-2 rounded-md text-sm font-semibold hover:opacity-90 transition-opacity">
+          + Post a job
+        </Link>
+      </div>
       <div className="grid grid-cols-1 gap-3">
         {actions.map((a) => (
           <Link key={a.href} href={a.href} className="flex items-start gap-4 bg-card border border-border rounded-lg p-4 hover:border-brand/40 hover:bg-brand-subtle/30 transition-all group">
