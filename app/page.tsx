@@ -72,7 +72,7 @@ export default function Home() {
             <div className="bg-card border border-border rounded-lg p-6 flex flex-col gap-5">
               <div>
                 <p className="text-xs font-medium text-brand uppercase tracking-widest mb-1">Candidate</p>
-                <h3 className="font-heading font-semibold text-foreground text-lg">Aishah Rahman</h3>
+                <h3 className="font-heading font-semibold text-foreground text-lg">Ahmad Chicken</h3>
                 <p className="text-sm text-muted-foreground mt-1">UTM CS student · Grab intern · 5 skills · Coursera cert</p>
               </div>
               <ol className="flex flex-col gap-4">
