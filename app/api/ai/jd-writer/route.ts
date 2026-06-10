@@ -2,23 +2,25 @@ import { createClient } from "@/lib/supabase/server";
 import { groq, MODEL } from "@/lib/claude/client";
 import { generateText } from "ai";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+import { parseBody } from "@/lib/validate";
+
+const Body = z.object({
+  title: z.string().trim().min(1).max(200),
+  location: z.string().max(200).optional().default(""),
+  employmentType: z.string().max(50).optional().default(""),
+  skills: z.array(z.string().max(100)).max(50).optional().default([]),
+  roughNotes: z.string().trim().min(1).max(5000),
+});
 
 export async function POST(req: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { title, location, employmentType, skills, roughNotes } = await req.json() as {
-    title: string;
-    location: string;
-    employmentType: string;
-    skills: string[];
-    roughNotes: string;
-  };
-
-  if (!title?.trim() || !roughNotes?.trim()) {
-    return NextResponse.json({ error: "title and roughNotes are required" }, { status: 400 });
-  }
+  const parsed = await parseBody(req, Body);
+  if ("error" in parsed) return parsed.error;
+  const { title, location, employmentType, skills, roughNotes } = parsed.data;
 
   const prompt = `You are a professional technical recruiter. Write a polished job description based on the employer's rough notes below.
 

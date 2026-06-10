@@ -1,42 +1,53 @@
 import { notFound } from "next/navigation";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
 
 type Props = { params: Promise<{ candidateId: string }> };
 
+// Shape returned by the get_public_portfolio RPC (security-definer, is_public-gated).
+type PortfolioData = {
+  candidate: {
+    id: string; name: string; location: string | null; bio: string | null;
+    github_url: string | null; linkedin_url: string | null; seeking: string;
+    job_title: string | null; years_exp: number | null;
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  qualifications: any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  work_experiences: any[];
+  skills: { level: string; skills: { name: string; category: string } | null }[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  portfolio_items: any[];
+};
+
+async function fetchPortfolio(candidateId: string): Promise<PortfolioData | null> {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("get_public_portfolio", { p_id: candidateId });
+  return (data as PortfolioData | null) ?? null;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { candidateId } = await params;
-  const supabase = createAdminClient();
-  const { data } = await supabase
-    .from("candidate_profiles")
-    .select("name, bio")
-    .eq("id", candidateId)
-    .single();
+  const data = await fetchPortfolio(candidateId);
   if (!data) return { title: "Portfolio — Career OS" };
+  const { name, bio } = data.candidate;
   return {
-    title: `${data.name} — Career OS Portfolio`,
-    description: data.bio ?? `View ${data.name}'s professional portfolio on Career OS.`,
+    title: `${name} — Career OS Portfolio`,
+    description: bio ?? `View ${name}'s professional portfolio on Career OS.`,
   };
 }
 
 export default async function PublicPortfolioPage({ params }: Props) {
   const { candidateId } = await params;
-  const supabase = createAdminClient();
 
-  const { data: candidate } = await supabase
-    .from("candidate_profiles")
-    .select("id, name, location, bio, github_url, linkedin_url, seeking, job_title, years_exp")
-    .eq("id", candidateId)
-    .single();
+  const data = await fetchPortfolio(candidateId);
+  if (!data) notFound();
 
-  if (!candidate) notFound();
-
-  const [{ data: quals }, { data: work }, { data: skills }, { data: portfolio }] = await Promise.all([
-    supabase.from("qualifications").select("*").eq("candidate_id", candidate.id).order("start_date", { ascending: false }),
-    supabase.from("work_experiences").select("*").eq("candidate_id", candidate.id).order("start_date", { ascending: false }),
-    supabase.from("candidate_skills").select("level, skills(name, category)").eq("candidate_id", candidate.id),
-    supabase.from("portfolio_items").select("*").eq("candidate_id", candidate.id).order("created_at", { ascending: false }),
-  ]);
+  const candidate = data.candidate;
+  const quals = data.qualifications;
+  const work = data.work_experiences;
+  const skills = data.skills;
+  const portfolio = data.portfolio_items;
 
   const skillsByCategory = (skills ?? []).reduce<Record<string, { name: string; level: string }[]>>((acc, s) => {
     const skill = (s.skills as unknown) as { name: string; category: string } | null;

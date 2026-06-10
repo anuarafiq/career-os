@@ -2,15 +2,29 @@ import { createClient } from "@/lib/supabase/server";
 import { groq, MODEL } from "@/lib/claude/client";
 import { streamText } from "ai";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+import { parseBody } from "@/lib/validate";
+
+const Body = z.object({
+  messages: z
+    .array(
+      z.object({
+        role: z.enum(["user", "assistant"]),
+        content: z.string().min(1).max(4000),
+      })
+    )
+    .min(1)
+    .max(50),
+});
 
 export async function POST(req: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { messages } = await req.json() as {
-    messages: { role: "user" | "assistant"; content: string }[];
-  };
+  const parsed = await parseBody(req, Body);
+  if ("error" in parsed) return parsed.error;
+  const { messages } = parsed.data;
 
   const { data: profile } = await supabase.from("profiles").select("id").eq("user_id", user.id).single();
   const { data: candidate } = await supabase

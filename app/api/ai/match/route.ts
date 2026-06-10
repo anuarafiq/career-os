@@ -2,13 +2,19 @@ import { createClient } from "@/lib/supabase/server";
 import { groq, MODEL } from "@/lib/claude/client";
 import { generateText } from "ai";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+import { parseBody } from "@/lib/validate";
+
+const Body = z.object({ jobDescription: z.string().min(1).max(5000) });
 
 export async function POST(req: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { jobDescription } = await req.json() as { jobDescription: string };
+  const parsed = await parseBody(req, Body);
+  if ("error" in parsed) return parsed.error;
+  const { jobDescription } = parsed.data;
 
   // Fetch candidates with their skills
   const { data: candidates } = await supabase

@@ -2,6 +2,14 @@ import { createClient } from "@/lib/supabase/server";
 import { groq, MODEL } from "@/lib/claude/client";
 import { generateText } from "ai";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+import { parseBody } from "@/lib/validate";
+
+const Body = z.object({
+  currentRole: z.string().max(200).optional().default(""),
+  targetRole: z.string().min(1).max(200),
+  missingSkills: z.array(z.string().max(100)).min(1).max(50),
+});
 
 export async function POST(req: Request) {
   const supabase = await createClient();
@@ -10,15 +18,9 @@ export async function POST(req: Request) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { currentRole, targetRole, missingSkills } = (await req.json()) as {
-    currentRole: string;
-    targetRole: string;
-    missingSkills: string[];
-  };
-
-  if (!targetRole || !Array.isArray(missingSkills) || missingSkills.length === 0) {
-    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-  }
+  const parsed = await parseBody(req, Body);
+  if ("error" in parsed) return parsed.error;
+  const { currentRole, targetRole, missingSkills } = parsed.data;
 
   const prompt = `You are a career development advisor for professionals in Malaysia and Southeast Asia.
 

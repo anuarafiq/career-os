@@ -2,14 +2,22 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { groq, MODEL } from "@/lib/claude/client";
 import { generateText } from "ai";
+import { z } from "zod";
+import { parseBody } from "@/lib/validate";
+
+const Body = z.object({
+  title: z.string().min(1).max(300),
+  institution: z.string().max(300).optional(),
+});
 
 export async function POST(req: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { title, institution } = await req.json() as { title?: string; institution?: string };
-  if (!title) return NextResponse.json({ error: "title is required" }, { status: 400 });
+  const parsed = await parseBody(req, Body);
+  if ("error" in parsed) return parsed.error;
+  const { title, institution } = parsed.data;
 
   const prompt = `Given the certificate "${title}"${institution ? ` from "${institution}"` : ""}, list up to 6 specific technical skills this course teaches. Return ONLY a JSON array of skill name strings. Example: ["React", "TypeScript", "CSS"]. No explanation, no markdown, just the array.`;
 

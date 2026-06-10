@@ -74,11 +74,17 @@ All AI routes use Vercel AI SDK `streamText`/`generateText`. Client: `lib/claude
 - Server page fetches `candidate_profiles`, passes to `ProfileEditForm` (client). Does `UPDATE` on `candidate_profiles`.
 
 ### Public Portfolio (`/p/[candidateId]`)
-- `app/p/[candidateId]/page.tsx` — public server component, no auth gate. Uses `createAdminClient()` (service role) to bypass RLS. Fetches by `candidate_profiles.id` UUID; calls `notFound()` if missing.
+- `app/p/[candidateId]/page.tsx` — public server component, no auth gate. Uses the **anon server client** (`@/lib/supabase/server` `createClient()`) and calls the `get_public_portfolio(p_id)` RPC (security hardening, migration 005), **not** the service-role admin client and **not** direct table selects. The RPC returns one candidate's full portfolio as JSON only when `is_public = true`; private/missing → `null` → `notFound()`. `fetchPortfolio()` helper wraps the rpc call; both `generateMetadata` and the page use it.
+- **Visibility model (migration 005):** `candidate_profiles.is_public boolean default true`. `get_public_portfolio(p_id)` is `SECURITY DEFINER` (bypasses RLS internally but gates on `is_public`) and granted `execute` to `anon`/`authenticated` — **no** `grant select` to anon on the tables, so the public PostgREST endpoint stays closed and the data can't be bulk-scraped via the anon key. Sub-tables (`qualifications`, `work_experiences`, `portfolio_items`, `candidate_skills`) keep owner-only RLS; non-owners reach them only through the RPC, one id at a time (UUID-gated). The old `"candidate_profiles: employer read" using (true)` policy is replaced by `"public read" using (is_public = true)` (authenticated employer search now hides opted-out candidates). Consequence: a candidate who opts out is invisible even to employers they applied to — add an applications-scoped policy if that's needed later.
 - Renders: header, bio, Education, Certificates, Work Experience, Skills, Projects (portfolio_items) sections. Standalone layout — no sidebar, no nav rail. Minimal header with "Career OS" wordmark + footer "Powered by Career OS / Build your profile →".
 - `generateMetadata` sets `<title>` to `"${name} — Career OS Portfolio"`.
 - `components/ShareButton.tsx` — client component on the private `/portfolio` page. Copies `/p/{candidateId}` URL to clipboard; shows "Copied!" for 2s.
-- `/p/` is not in `proxy.ts` protectedPaths — no middleware change needed.
+- `/p/` is not in `proxy.ts` protectedPaths — no middleware change needed. `proxy.ts` rate-limits `/p/` (60/min/IP) and `/api/demo` (5/min/IP) via `lib/rate-limit.ts` (in-memory, per-instance).
+
+### Security
+- **HTTP headers** set in `next.config.ts` `headers()` for all routes: CSP (conservative — `'unsafe-inline'` for style/script, `frame-ancestors 'none'`), X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy, HSTS.
+- **Input validation:** AI/cert API routes validate the request body with Zod via `lib/validate.ts` `parseBody(req, schema)` (returns `{ data }` or a 400 `{ error }`). Free-text fields fed to the LLM are length-capped to bound Groq cost / DoS.
+- **Rate limiting:** `lib/rate-limit.ts` — fixed-window, in-memory `Map`. Per-instance only (not shared across serverless/edge); swap for Upstash/Redis if durable limiting is needed.
 
 ### Coach
 - `react-markdown` in `CoachChat.tsx` for rendering structured responses. User messages render as plain text.
