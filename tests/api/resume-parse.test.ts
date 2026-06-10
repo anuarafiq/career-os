@@ -75,7 +75,7 @@ describe("POST /api/resumes/parse", () => {
     vi.mocked(createClient).mockResolvedValue(makeSupabaseMock() as never);
     vi.mocked(generateText).mockResolvedValue({
       text: JSON.stringify({
-        name: "Aishah Rahman",
+        name: "Ahmad Chicken",
         location: "Kuala Lumpur",
         bio: "CS student",
         github_url: "",
@@ -91,13 +91,13 @@ describe("POST /api/resumes/parse", () => {
 
     const req = new Request("http://localhost/api/resumes/parse", {
       method: "POST",
-      body: JSON.stringify({ cvText: "Aishah Rahman, CS student at UTM..." }),
+      body: JSON.stringify({ cvText: "Ahmad Chicken, CS student at UTM..." }),
     });
 
     const res = await POST(req);
     expect(res.status).toBe(200);
     const json = await res.json();
-    expect(json.name).toBe("Aishah Rahman");
+    expect(json.name).toBe("Ahmad Chicken");
     expect(json.skills).toContain("Python");
   });
 

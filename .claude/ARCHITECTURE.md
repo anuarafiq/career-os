@@ -113,7 +113,7 @@ All AI routes use Vercel AI SDK `streamText`/`generateText`. Client: `lib/claude
 ## Demo System
 
 - `POST /api/demo` seeds a full demo account on first call (idempotent).
-- Demo candidate: "Aishah Rahman" (UTM CS, Grab intern, 5 skills, 2 portfolio projects).
+- Demo candidate: "Ahmad Chicken" (UTM CS, Grab intern, 5 skills, 2 portfolio projects).
 - Demo employer: "TechCorp Malaysia" (3 open jobs).
 - `linkDemoPool()` called on every demo login (idempotent upsert) — cross-links demo candidate into demo employer's talent pool regardless of seeding order.
 - Landing page: demo buttons are primary CTAs (amber-filled); signup links are inline text below. "2-minute walkthrough" section between hero and feature grid with `candidateSteps` / `employerSteps` arrays.

@@ -88,11 +88,11 @@ async function seedCandidate(admin: any, userId: string) {
     .from("candidate_profiles")
     .insert({
       profile_id: profile.id,
-      name: "Aishah Rahman",
+      name: "Ahmad Chicken",
       location: "Kuala Lumpur",
       bio: "Final-year Computer Science student at UTM. I build web apps and enjoy solving algorithmic problems. Actively seeking a software engineering internship to bridge academic theory with industry practice.",
-      github_url: "https://github.com/aisharahman",
-      linkedin_url: "https://linkedin.com/in/aisharahman",
+      github_url: "https://github.com/ahmadchicken",
+      linkedin_url: "https://linkedin.com/in/ahmadchicken",
       seeking: "internship",
       job_title: "Software Engineering Intern",
       years_exp: 1,
@@ -180,7 +180,7 @@ async function seedCandidate(admin: any, userId: string) {
       title: "StudyBuddy — Peer Matching App",
       description:
         "A web app that matches UTM students by course and study schedule. Built with Next.js + Supabase. 200+ active users within the first month.",
-      url: "https://github.com/aisharahman/studybuddy",
+      url: "https://github.com/ahmadchicken/studybuddy",
       tags: ["Next.js", "Supabase", "TypeScript"],
       date: "2024-11-01",
     },
@@ -189,7 +189,7 @@ async function seedCandidate(admin: any, userId: string) {
       title: "Expense Tracker CLI",
       description:
         "Command-line expense tracker with SQLite storage and category analytics. Built in Python as a learning project.",
-      url: "https://github.com/aisharahman/expense-cli",
+      url: "https://github.com/ahmadchicken/expense-cli",
       tags: ["Python", "SQLite", "CLI"],
       date: "2024-05-01",
     },

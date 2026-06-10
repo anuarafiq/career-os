@@ -72,7 +72,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## Demo Mode
 
 One-click demo login buttons on the landing page seed a full demo account:
-- **Candidate:** "Aishah Rahman" (UTM CS, Grab intern, 5 skills, 2 portfolio projects)
+- **Candidate:** "Ahmad Chicken" (UTM CS, Grab intern, 5 skills, 2 portfolio projects)
 - **Employer:** "TechCorp Malaysia" (3 open jobs, sample applications)
 
 Access via the landing page or direct API call:

@@ -185,7 +185,7 @@ const candidateSteps = [
   },
   {
     label: "Chat with your Coach",
-    desc: 'AI Career Coach — ask "What should I learn next?" The coach reads Aishah\'s actual profile, not a template.',
+    desc: 'AI Career Coach — ask "What should I learn next?" The coach reads Ahmad\'s actual profile, not a template.',
   },
   {
     label: "Browse & Track",
@@ -200,7 +200,7 @@ const employerSteps = [
   },
   {
     label: "Work the Pipeline",
-    desc: "Pipeline — move Aishah's application through Applied → Reviewed → Shortlisted using the kanban board.",
+    desc: "Pipeline — move Ahmad's application through Applied → Reviewed → Shortlisted using the kanban board.",
   },
   {
     label: "Re-Engage past candidates",
