@@ -303,11 +303,11 @@ export function CareerPathExplorer({
   }
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-[100dvh]">
       {/* Graph */}
       <div className="flex-1 relative">
         {/* Filter bar */}
-        <div className="absolute top-4 left-4 z-10 flex items-center gap-2 bg-card border border-border rounded-lg px-3 py-2">
+        <div className="absolute top-4 left-4 right-4 z-10 flex items-center gap-2 bg-card border border-border rounded-lg px-3 py-2 overflow-x-auto">
           <span className="text-xs text-muted-foreground font-medium mr-1">Filter:</span>
           {["all", ...categories].map((cat) => (
             <button
@@ -377,13 +377,24 @@ export function CareerPathExplorer({
         </ReactFlow>
       </div>
 
-      {/* Detail panel */}
+      {/* Detail panel — fixed bottom sheet on mobile, side panel on md+ */}
       <aside
         className={cn(
-          "w-80 shrink-0 border-l border-border bg-card flex flex-col transition-all",
-          (selectedNode || targetNodeId) ? "translate-x-0" : "translate-x-full hidden"
+          "bg-card flex flex-col",
+          // Mobile: fixed bottom sheet
+          "fixed bottom-0 left-0 right-0 z-20 border-t border-border rounded-t-2xl max-h-[60vh] overflow-y-auto transition-transform duration-300",
+          // Desktop: static side panel in flex row
+          "md:static md:bottom-auto md:left-auto md:right-auto md:z-auto md:rounded-none md:border-t-0 md:border-l md:w-80 md:shrink-0 md:max-h-none md:overflow-y-visible md:transition-none",
+          (selectedNode || targetNodeId)
+            ? "translate-y-0 md:flex"
+            : "translate-y-full md:hidden"
         )}
       >
+        {/* Mobile drag handle */}
+        <div className="flex justify-center pt-3 pb-1 md:hidden" aria-hidden="true">
+          <div className="w-8 h-1 rounded-full bg-border" />
+        </div>
+
         {/* Path summary section */}
         {targetNodeId && targetNode && currentNode && (
           <div className="border-b border-border shrink-0">

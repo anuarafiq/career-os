@@ -99,21 +99,21 @@ export default function JobsClientView({
     <div className="flex flex-col gap-4">
       {/* Filter bar */}
       <div className="rounded-lg border border-border bg-card p-4 flex flex-col gap-3">
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex flex-col sm:flex-row gap-2 sm:flex-wrap">
           <Input
             placeholder="Search jobs..."
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
-            className="w-48 h-8 text-sm"
+            className="w-full sm:w-48 h-8 text-sm"
           />
           <Input
             placeholder="Location"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            className="w-36 h-8 text-sm"
+            className="w-full sm:w-36 h-8 text-sm"
           />
           <Select value={empType} onValueChange={(v) => setEmpType(v ?? "all")}>
-            <SelectTrigger className="w-36 h-8 text-sm">
+            <SelectTrigger className="w-full sm:w-36 h-8 text-sm">
               <SelectValue placeholder="Type" />
             </SelectTrigger>
             <SelectContent>
@@ -123,14 +123,14 @@ export default function JobsClientView({
               ))}
             </SelectContent>
           </Select>
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">RM</span>
             <Input
               type="number"
               placeholder="Min salary (k)"
               value={salaryMin}
               onChange={(e) => setSalaryMin(e.target.value)}
-              className="w-36 h-8 text-sm pl-8"
+              className="w-full sm:w-36 h-8 text-sm pl-8"
               min={0}
             />
           </div>

@@ -5,7 +5,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-background flex flex-col">
       {/* Nav */}
-      <nav className="flex items-center justify-between px-8 py-5 border-b border-border">
+      <nav className="flex items-center justify-between px-4 md:px-8 py-5 border-b border-border">
         <span className="font-heading text-xl font-semibold tracking-tight text-foreground">
           Career<span className="text-brand">OS</span>
         </span>
@@ -26,7 +26,7 @@ export default function Home() {
       </nav>
 
       {/* Hero */}
-      <section className="flex-1 flex flex-col items-center justify-center px-8 py-24 text-center">
+      <section className="flex-1 flex flex-col items-center justify-center px-4 md:px-8 py-24 text-center">
         <div className="inline-flex items-center gap-2 text-xs font-medium text-brand bg-brand-subtle px-3 py-1.5 rounded-full mb-8 tracking-wide uppercase">
           Talentbank Hackathon 2026
         </div>
@@ -63,7 +63,7 @@ export default function Home() {
       </section>
 
       {/* Demo Walkthrough */}
-      <section className="px-8 pb-16">
+      <section className="px-4 md:px-8 pb-16">
         <div className="max-w-5xl mx-auto">
           <p className="text-xs font-medium text-brand bg-brand-subtle px-3 py-1.5 rounded-full uppercase tracking-wide inline-flex mb-6">
             2-minute walkthrough
@@ -115,7 +115,7 @@ export default function Home() {
       </section>
 
       {/* Feature grid */}
-      <section className="px-8 pb-24">
+      <section className="px-4 md:px-8 pb-24">
         <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {features.map((f) => (
             <div
@@ -134,7 +134,7 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="border-t border-border px-8 py-6 text-center text-xs text-muted-foreground">
+      <footer className="border-t border-border px-4 md:px-8 py-6 text-center text-xs text-muted-foreground">
         Career OS &mdash; Talentbank Tech Hackathon 2026
       </footer>
     </main>

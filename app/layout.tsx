@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
 
@@ -14,6 +14,12 @@ const bricolage = Bricolage_Grotesque({
   axes: ["opsz", "wdth"],
   display: "swap",
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   title: "Career OS — Navigate Your Career",

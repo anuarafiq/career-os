@@ -33,7 +33,7 @@ export default async function PipelinePage() {
   const serializedJobs = (jobs ?? []).map((j) => ({ id: j.id, title: j.title }));
 
   return (
-    <div className="px-8 py-8">
+    <div className="px-4 py-6 md:px-8 md:py-8">
       <h1 className="font-heading text-3xl font-bold mb-1">Pipeline</h1>
       <p className="text-muted-foreground text-sm mb-8">
         {serializedApps.length} application{serializedApps.length !== 1 ? "s" : ""} across {serializedJobs.length} open role{serializedJobs.length !== 1 ? "s" : ""}

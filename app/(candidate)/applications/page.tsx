@@ -68,7 +68,7 @@ export default async function ApplicationsPage() {
   const rows = (applications ?? []) as unknown as ApplicationRow[];
 
   return (
-    <div className="p-8 max-w-3xl mx-auto">
+    <div className="p-4 md:p-8 max-w-3xl mx-auto">
       <h1 className="font-heading text-2xl font-semibold text-foreground mb-6">My Applications</h1>
 
       {rows.length === 0 ? (

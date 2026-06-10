@@ -36,6 +36,7 @@ export default async function EmployerLayout({
         email={user.email ?? ""}
       />
       <main className="flex-1 min-w-0 overflow-auto">
+        <div className="h-12 md:hidden" aria-hidden="true" />
         {children}
       </main>
     </div>

@@ -113,7 +113,7 @@ export function CoachChat({
   }
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-[100dvh]">
       {/* Header */}
       <div className="px-6 py-4 border-b border-border flex items-center gap-3">
         <div className="w-8 h-8 rounded-full bg-brand-subtle flex items-center justify-center text-brand text-sm">
@@ -218,7 +218,7 @@ export function CoachChat({
             {streaming ? "..." : "Send"}
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground mt-2">Enter to send · Shift+Enter for new line</p>
+        <p className="hidden sm:block text-xs text-muted-foreground mt-2">Enter to send · Shift+Enter for new line</p>
       </div>
     </div>
   );

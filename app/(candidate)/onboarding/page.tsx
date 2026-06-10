@@ -321,7 +321,7 @@ export default function OnboardingPage() {
               <Label htmlFor="bio">Bio</Label>
               <Textarea id="bio" value={bio} onChange={(e) => setBio(e.target.value)} placeholder="A sentence or two about you..." rows={3} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="github">GitHub URL</Label>
                 <Input id="github" value={githubUrl} onChange={(e) => setGithubUrl(e.target.value)} placeholder="github.com/username" />
@@ -363,7 +363,7 @@ export default function OnboardingPage() {
             </div>
 
             {seeking === "full_time" && (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor="currentRole">Current / most recent role</Label>
                   <Input id="currentRole" value={currentRole} onChange={(e) => setCurrentRole(e.target.value)} placeholder="Software Engineer" />
@@ -409,17 +409,17 @@ export default function OnboardingPage() {
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex flex-col gap-1.5 col-span-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1.5 col-span-1 sm:col-span-2">
                     <Label>Institution *</Label>
                     <Input value={q.institution} onChange={(e) => setQuals((p) => p.map((x, idx) => idx === i ? { ...x, institution: e.target.value } : x))} placeholder={q.type === "education" ? "Universiti Malaya" : "Coursera"} />
                   </div>
-                  <div className="flex flex-col gap-1.5 col-span-2">
+                  <div className="flex flex-col gap-1.5 col-span-1 sm:col-span-2">
                     <Label>{q.type === "education" ? "Degree / Programme *" : "Certificate name *"}</Label>
                     <Input value={q.title} onChange={(e) => setQuals((p) => p.map((x, idx) => idx === i ? { ...x, title: e.target.value } : x))} placeholder={q.type === "education" ? "Bachelor of Computer Science" : "AWS Solutions Architect"} />
                   </div>
                   {q.type === "education" && (
-                    <div className="flex flex-col gap-1.5 col-span-2">
+                    <div className="flex flex-col gap-1.5 col-span-1 sm:col-span-2">
                       <Label>Field of study</Label>
                       <Input value={q.field_of_study} onChange={(e) => setQuals((p) => p.map((x, idx) => idx === i ? { ...x, field_of_study: e.target.value } : x))} placeholder="Software Engineering" />
                     </div>
@@ -432,7 +432,7 @@ export default function OnboardingPage() {
                     <Label>End date</Label>
                     <Input type="month" value={q.end_date} onChange={(e) => setQuals((p) => p.map((x, idx) => idx === i ? { ...x, end_date: e.target.value } : x))} disabled={q.is_current} />
                   </div>
-                  <label className="flex items-center gap-2 col-span-2 text-sm text-muted-foreground cursor-pointer">
+                  <label className="flex items-center gap-2 col-span-1 sm:col-span-2 text-sm text-muted-foreground cursor-pointer">
                     <input
                       type="checkbox"
                       checked={q.is_current}
@@ -487,7 +487,7 @@ export default function OnboardingPage() {
                       )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="flex flex-col gap-1.5">
                         <Label>Company *</Label>
                         <Input value={w.company} onChange={(e) => setWorkExps((p) => p.map((x, idx) => idx === i ? { ...x, company: e.target.value } : x))} placeholder="Grab" />
@@ -521,11 +521,11 @@ export default function OnboardingPage() {
                         <Label>End date</Label>
                         <Input type="month" value={w.end_date} onChange={(e) => setWorkExps((p) => p.map((x, idx) => idx === i ? { ...x, end_date: e.target.value } : x))} disabled={w.is_current} />
                       </div>
-                      <label className="flex items-center gap-2 col-span-2 text-sm text-muted-foreground cursor-pointer">
+                      <label className="flex items-center gap-2 col-span-1 sm:col-span-2 text-sm text-muted-foreground cursor-pointer">
                         <input type="checkbox" checked={w.is_current} onChange={(e) => setWorkExps((p) => p.map((x, idx) => idx === i ? { ...x, is_current: e.target.checked } : x))} className="accent-brand" />
                         I currently work here
                       </label>
-                      <div className="flex flex-col gap-1.5 col-span-2">
+                      <div className="flex flex-col gap-1.5 col-span-1 sm:col-span-2">
                         <Label>What did you do?</Label>
                         <Textarea value={w.description} onChange={(e) => setWorkExps((p) => p.map((x, idx) => idx === i ? { ...x, description: e.target.value } : x))} placeholder="Describe your responsibilities and achievements..." rows={2} />
                       </div>

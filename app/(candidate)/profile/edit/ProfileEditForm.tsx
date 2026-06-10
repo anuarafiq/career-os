@@ -105,7 +105,7 @@ export function ProfileEditForm({ candidate }: { candidate: Candidate }) {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="github">GitHub URL</Label>
           <Input
@@ -152,7 +152,7 @@ export function ProfileEditForm({ candidate }: { candidate: Candidate }) {
       </div>
 
       {seeking === "full_time" && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="jobTitle">Current / most recent role</Label>
             <Input

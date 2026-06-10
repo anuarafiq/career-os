@@ -61,14 +61,14 @@ export default async function PublicPortfolioPage({ params }: Props) {
     <div className="min-h-screen" style={{ background: "var(--bg-base)" }}>
       {/* Minimal nav */}
       <header className="border-b" style={{ borderColor: "var(--border-subtle)" }}>
-        <div className="max-w-3xl mx-auto px-8 py-4">
+        <div className="max-w-3xl mx-auto px-4 md:px-8 py-4">
           <a href="/" className="font-heading font-bold text-sm" style={{ color: "var(--accent)" }}>
             Career OS
           </a>
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-8 py-10">
+      <main className="max-w-3xl mx-auto px-4 md:px-8 py-10">
         {/* Header */}
         <div className="flex items-start justify-between mb-8">
           <div>
@@ -305,7 +305,7 @@ export default async function PublicPortfolioPage({ params }: Props) {
       </main>
 
       <footer className="border-t py-6" style={{ borderColor: "var(--border-subtle)" }}>
-        <div className="max-w-3xl mx-auto px-8 flex items-center justify-between">
+        <div className="max-w-3xl mx-auto px-4 md:px-8 flex items-center justify-between">
           <p className="text-xs" style={{ color: "var(--text-muted)" }}>
             Powered by{" "}
             <a href="/" className="hover:opacity-80" style={{ color: "var(--accent)" }}>Career OS</a>
