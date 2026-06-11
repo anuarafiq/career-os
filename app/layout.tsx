@@ -25,10 +25,6 @@ export const metadata: Metadata = {
   title: "Career OS — Navigate Your Career",
   description:
     "See realistic career paths, understand trade-offs, and connect with opportunities across Asia.",
-  icons: {
-    icon: "/logo.jpeg",
-    apple: "/logo.jpeg",
-  },
 };
 
 export default function RootLayout({
