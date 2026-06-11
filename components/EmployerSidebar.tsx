@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -83,21 +84,17 @@ export function EmployerSidebar({
       {/* Desktop sidebar */}
       <aside className="hidden md:flex w-56 shrink-0 border-r border-border flex-col h-screen sticky top-0">
         <div className="px-5 py-5 border-b border-border">
-          <span className="font-heading text-lg font-semibold">
-            Career<span className="text-brand">OS</span>
-          </span>
-          <p className="text-xs text-muted-foreground mt-0.5">Employer</p>
+          <Image src="/logo.jpeg" alt="Career OS" width={80} height={80} className="rounded-md" priority />
+          <p className="text-xs text-muted-foreground mt-1">Employer</p>
         </div>
         {navContent}
       </aside>
 
       {/* Mobile top bar */}
       <div className="flex md:hidden items-center justify-between px-4 h-12 border-b border-border bg-background fixed top-0 left-0 right-0 z-30">
-        <div>
-          <span className="font-heading text-base font-semibold">
-            Career<span className="text-brand">OS</span>
-          </span>
-          <span className="text-xs text-muted-foreground ml-2">Employer</span>
+        <div className="flex items-center gap-2">
+          <Image src="/logo.jpeg" alt="Career OS" width={32} height={32} className="rounded-sm" priority />
+          <span className="text-xs text-muted-foreground">Employer</span>
         </div>
         <button
           type="button"
@@ -132,10 +129,8 @@ export function EmployerSidebar({
       >
         <div className="px-5 py-4 border-b border-border flex items-center justify-between">
           <div>
-            <span className="font-heading text-lg font-semibold">
-              Career<span className="text-brand">OS</span>
-            </span>
-            <p className="text-xs text-muted-foreground mt-0.5">Employer</p>
+            <Image src="/logo.jpeg" alt="Career OS" width={40} height={40} className="rounded-sm" />
+            <p className="text-xs text-muted-foreground mt-1">Employer</p>
           </div>
           <button
             type="button"

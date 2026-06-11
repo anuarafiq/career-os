@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -54,8 +55,8 @@ function SignupForm() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        <Link href="/" className="block text-center font-heading text-2xl font-bold mb-8">
-          Career<span className="text-brand">OS</span>
+        <Link href="/" className="flex justify-center mb-8">
+          <Image src="/logo.jpeg" alt="Career OS" width={64} height={64} className="rounded-md" priority />
         </Link>
 
         <h1 className="font-heading text-xl font-semibold mb-1">Create an account</h1>

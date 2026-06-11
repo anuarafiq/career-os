@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import DemoLogin from "@/components/DemoLogin";
 
@@ -6,9 +7,7 @@ export default function Home() {
     <main className="min-h-screen bg-background flex flex-col">
       {/* Nav */}
       <nav className="flex items-center justify-between px-4 md:px-8 py-5 border-b border-border">
-        <span className="font-heading text-xl font-semibold tracking-tight text-foreground">
-          Career<span className="text-brand">OS</span>
-        </span>
+        <Image src="/logo.jpeg" alt="Career OS" width={40} height={40} className="rounded-sm" priority />
         <div className="flex items-center gap-4">
           <Link
             href="/login"
